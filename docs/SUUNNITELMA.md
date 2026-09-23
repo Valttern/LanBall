@@ -10,16 +10,16 @@ Merkinnät: **[G]** Valtterin päätös · **[E]** Clauden ehdotus, ei vielä ku
 | # | Tila | Päätös | Päivä |
 |---|---|---|---|
 | 1 | [G] | MVP tehdään webillä ja TypeScriptillä. Muuta alustaa (esim. Godot) harkitaan vasta, jos idea osoittautuu hyväksi. | 23.9.2026 |
-| 2 | [E] | Simulaatio on erillään muusta: `step(tila, syötteet) → uusi tila`, 60 Hz. Ei riippuvuutta ruutuun, syötelaitteisiin tai verkkoon. | 23.9.2026 |
-| 3 | [E] | Jokainen pelaaja on simulaatiolle syötelähde (näppäimistö, ohjain, verkko, botti). Paikallinen peli on host ilman etäpelaajia. | 23.9.2026 |
-| 4 | [E] | Verkossa host päättää: asiakkaat lähettävät syötteet, host lähettää pelin tilan 30–60 Hz, asiakkaat interpoloivat. | 23.9.2026 |
-| 5 | [E] | LAN-rajaus: ei ennustavaa liikettä, rollbackia eikä deterministisyysvaatimusta MVP:ssä. | 23.9.2026 |
-| 6 | [E] | Sisältö (hahmot, powerupit, kentät) määritellään datana, ei koodihaaroina. | 23.9.2026 |
-| 7 | [E] | Tekniikka: monorepo, jossa `sim` (puhdas TS, ei riippuvuuksia), `server` (Node + WebSocket `ws`) ja `client` (Vite + PixiJS). Vitest simulaation testeihin. | 23.9.2026 |
-| 8 | [E] | Renderöintiin PixiJS eikä Phaser: Phaserilla on oma fysiikka ja scene-malli, jotka menisivät päällekkäin oman simulaation kanssa. | 23.9.2026 |
-| 9 | [E] | Fysiikka tehdään itse: pelaajat ja pallo ovat ympyröitä, seinät janoja. Ei fysiikkakirjastoa. Pieni, hallittava ja pyörii samana palvelimella. | 23.9.2026 |
+| 2 | [G] | Simulaatio on erillään muusta: `step(tila, syötteet) → uusi tila`, 60 Hz. Ei riippuvuutta ruutuun, syötelaitteisiin tai verkkoon. | 23.9.2026 |
+| 3 | [G] | Jokainen pelaaja on simulaatiolle syötelähde (näppäimistö, ohjain, verkko, botti). Paikallinen peli on host ilman etäpelaajia. | 23.9.2026 |
+| 4 | [G] | Verkossa host päättää: asiakkaat lähettävät syötteet, host lähettää pelin tilan 30–60 Hz, asiakkaat interpoloivat. | 23.9.2026 |
+| 5 | [G] | LAN-rajaus: ei ennustavaa liikettä, rollbackia eikä deterministisyysvaatimusta MVP:ssä. | 23.9.2026 |
+| 6 | [G] | Sisältö (hahmot, powerupit, kentät) määritellään datana, ei koodihaaroina. | 23.9.2026 |
+| 7 | [G] | Tekniikka: monorepo, jossa `sim` (puhdas TS, ei riippuvuuksia), `server` (Node + WebSocket `ws`) ja `client` (Vite + PixiJS). Vitest simulaation testeihin. | 23.9.2026 |
+| 8 | [G] | Renderöintiin PixiJS eikä Phaser: Phaserilla on oma fysiikka ja scene-malli, jotka menisivät päällekkäin oman simulaation kanssa. | 23.9.2026 |
+| 9 | [G] | Fysiikka tehdään itse: pelaajat ja pallo ovat ympyröitä, seinät janoja. Ei fysiikkakirjastoa. Pieni, hallittava ja pyörii samana palvelimella. | 23.9.2026 |
 | 10 | [G] | Ohjausmalli: joukkueessa on kiinteä määrä hahmoja (esim. 4). Joukkueen ainoa pelaaja ohjaa koko joukkuetta ja vaihtaa aktiivista hahmoa (automaattisesti palloa lähimpään + vaihtonappi). Jos joukkueessa on useampi pelaaja, jokainen on lukittu omaan hahmoonsa. Tekoäly ohjaa hahmot, joita kukaan ei ohjaa. | 23.9.2026 |
-| 11 | [E] | S1:n tekoäly on sääntöpohjainen: hahmo pysyy muodostelmapaikallaan, jahtaa palloa jos on joukkueestaan lähimpänä ja syöttää tai laukoo yksinkertaisella säännöllä. Hiotaan myöhemmin. Riski: tyhmä tekoälykaveri turhauttaa. | 23.9.2026 |
+| 11 | [G] | S1:n tekoäly on sääntöpohjainen: hahmo pysyy muodostelmapaikallaan, jahtaa palloa jos on joukkueestaan lähimpänä ja syöttää tai laukoo yksinkertaisella säännöllä. Hiotaan myöhemmin. Riski: tyhmä tekoälykaveri turhauttaa. | 23.9.2026 |
 | 12 | [G] | Git: `main` paikallisesti, commit valmiin päätöksen tai siivun osan jälkeen, GitHub vasta pyynnöstä. Kirjattu CLAUDE.md:hen. | 23.9.2026 |
 | 13 | [G] | Joukkue: 3 kenttäpelaajaa + tekoälymaalivahti, jota ei voi ohjata. Hahmon vaihto koskee vain kenttäpelaajia. Enintään 3 pelaajaa per joukkue, 6 koko pelissä. | 23.9.2026 |
 | 14 | [G] | Areena ja säännöt: suljettu areena, joka mahtuu yhdelle ruudulle (ei kameraa). Seinät, joista pallo kimpoaa, pyöristetyt kulmat. Ei rajaheittoja, paitsioita, vapaapotkuja eikä kortteja. Taklaus aina sallittu ja kaataa hahmon hetkeksi. Maalin jälkeen aloitus keskeltä. Ottelu 2–3 min. Esteet ja pomppulevyt harkitaan S4:ssä. | 23.9.2026 |
