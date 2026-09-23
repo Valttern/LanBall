@@ -238,6 +238,8 @@ export class GameView {
   private arena: Arena;
   roster = new Map<number, RosterInfo>();
   onHitstop: ((ms: number) => void) | null = null;
+  /** Kehitystilan lähikuva: zoomaa ja keskitä pisteeseen. */
+  debugFocus: { x: number; y: number; zoom: number } | null = null;
 
   constructor(arena: Arena, resolution: number) {
     this.arena = arena;
@@ -390,9 +392,10 @@ export class GameView {
 
     this.fx.update(dt);
     this.shake.update(dt, reducedMotion);
-    const targetZoom = curr.phase === "goal" ? 1.04 : 1;
-    this.zoom = lerp(this.zoom, targetZoom, Math.min(1, dt * 3));
+    const targetZoom = this.debugFocus?.zoom ?? (curr.phase === "goal" ? 1.04 : 1);
+    this.zoom = this.debugFocus ? targetZoom : lerp(this.zoom, targetZoom, Math.min(1, dt * 3));
     this.resize(this.viewSize.w, this.viewSize.h);
+    this.world.pivot.set(this.debugFocus?.x ?? 0, this.debugFocus?.y ?? 0);
     this.world.position.set(this.shake.x, this.shake.y);
     this.world.rotation = this.shake.rot;
   }

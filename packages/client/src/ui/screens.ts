@@ -151,7 +151,7 @@ export function howtoHtml() {
         <dt><span class="key">F</span></dt><dd>Pass</dd><dt><span class="key">G</span></dt><dd>Shoot</dd><dt><span class="key">H</span></dt><dd>Tackle</dd>
       </dl></div>
       <div><h3>Keyboard, right</h3><dl>
-        <dt><span class="key">←</span><span class="key">↑</span><span class="key">↓</span><span class="key">→</span></dt><dd>Move</dd>
+        <dt><span class="key">Arrow keys</span></dt><dd>Move</dd>
         <dt><span class="key">,</span></dt><dd>Pass</dd><dt><span class="key">.</span></dt><dd>Shoot</dd><dt><span class="key">-</span></dt><dd>Tackle</dd>
       </dl></div>
       <div><h3>Gamepad</h3><dl>

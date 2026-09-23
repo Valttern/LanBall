@@ -537,7 +537,9 @@ export class App {
         s = { id, team: p.team, character: p.character, human: null, goals: 0, shots: 0, knocks: 0, saves: 0 };
         this.stats.set(id, s);
       }
-      if (p.controller !== null) s.human = this.roster.get(p.controller)?.name ?? s.human;
+      // Pelaajan nimi vain hänen aulassa valitsemalleen hahmolle, ei jokaiselle, jota hän ehti ohjata.
+      // Ihmisten hahmot ovat joukkueen sisällä uniikkeja, eikä tekoäly saa samaa hahmoa.
+      s.human = this.lobby.players.find((lp) => lp.team === p.team && lp.character === p.character)?.name ?? null;
       return s;
     };
     for (const p of state.players) get(p.id);
@@ -589,6 +591,9 @@ export class App {
       },
       startLocal: () => app.startLocalMatch(),
       results: () => app.showResults(),
+      focus(x: number, y: number, zoom: number) {
+        app.view.debugFocus = zoom === 1 ? null : { x, y, zoom };
+      },
     };
   }
 }
