@@ -57,6 +57,7 @@ export class App {
   private endedAt: number | null = null;
   private lobbyKey = "";
   private toastTimer: ReturnType<typeof setTimeout> | null = null;
+  private hostAvailable: boolean | null = null; // GitHub Pagesissa ei ole LAN-hostia
 
   constructor(pixi: Application) {
     this.pixi = pixi;
@@ -64,6 +65,7 @@ export class App {
     warmCharacters();
     this.startAttract();
     this.renderScreen();
+    void this.detectHost();
 
     const wake = () => unlock();
     window.addEventListener("keydown", wake);
@@ -88,6 +90,21 @@ export class App {
     pixi.ticker.add((t) => this.tick(Math.min(0.1, t.deltaMS / 1000)));
 
     if (import.meta.env.DEV) (window as unknown as { __lanball: unknown }).__lanball = this.devHooks();
+  }
+
+  private async detectHost() {
+    try {
+      const res = await fetch("api/info");
+      this.hostAvailable = res.ok && (await res.json()).lanball === true;
+    } catch {
+      this.hostAvailable = false;
+    }
+    if (this.screen === "title") this.renderScreen();
+  }
+
+  private menuItems(): MenuItem[] {
+    if (this.hostAvailable !== false) return MENU;
+    return MENU.map((m) => (m.id === "lan" ? { ...m, sub: "Needs a host computer running npm run host" } : m));
   }
 
   // ---------- Sessiot ----------
@@ -158,7 +175,7 @@ export class App {
   private renderScreen() {
     const s = this.screen;
     let html = "";
-    if (s === "title") html = titleHtml(MENU, this.menuIndex, isMuted());
+    if (s === "title") html = titleHtml(this.menuItems(), this.menuIndex, isMuted());
     if (s === "howto") html = howtoHtml();
     if (s === "lobby") html = this.lobbyMarkup();
     if (s === "results") html = resultsHtml(this.lastState?.score ?? [0, 0], [...this.stats.values()], this.resultActions(), this.overlayIndex);
