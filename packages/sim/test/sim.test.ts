@@ -76,7 +76,7 @@ describe("pallo ja maalit", () => {
     s.players = [];
     s.slots = [];
     s.ball.vel = { x: 1400, y: 0 };
-    s = run(s, TICK_RATE);
+    s = run(s, TICK_RATE * 2);
     expect(s.score).toEqual([1, 0]);
     expect(s.phase).toBe("goal");
     s = run(s, secs(TUNING.goalPause + 0.1));
@@ -150,8 +150,8 @@ describe("pallon hallinta", () => {
 
   it("kova seinäosuma irrottaa pallon", () => {
     let s = solo();
-    p0(s).pos = { x: 300, y: -250 };
-    s.ball.pos = { x: 345, y: -250 };
+    p0(s).pos = { x: arena.halfWidth - 300, y: -250 };
+    s.ball.pos = { x: arena.halfWidth - 255, y: -250 };
     let owned = false;
     let lost = false;
     for (let i = 0; i < 2 * TICK_RATE; i++) {

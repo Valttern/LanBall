@@ -2,17 +2,15 @@ import { Container, Graphics, Sprite, Text, Texture } from "pixi.js";
 import { CHARACTERS, KEEPER, PICKUPS, character, hasEffect } from "@lanball/sim";
 import type { Arena, GameEvent, GameState, Pickup, Player, Vec } from "@lanball/sim";
 import { sfx, setCrowd } from "../audio/audio.ts";
+import { TILT, WALL_H, buildArena, drawLedFlash } from "./arena.ts";
+import type { ArenaLayers } from "./arena.ts";
 import {
-  BOARD,
   CHAR_R,
   CHAR_TEX_ANCHOR,
   CHAR_TEX_WORLD,
   HEAD_Y,
   PICKUP_COLORS,
   TEAM_NUM,
-  VIEW_H,
-  VIEW_W,
-  arenaTexture,
   ballTexture,
   bananaPeelTexture,
   characterTexture,
@@ -91,8 +89,8 @@ class PlayerView {
     const speed = dt > 0 ? Math.hypot(pos.x - this.lastPos.x, pos.y - this.lastPos.y) / dt : 0;
     this.lastPos = { ...pos };
     this.phase += dt * (4 + speed / 30);
-    this.root.position.set(pos.x, pos.y);
-    this.root.zIndex = pos.y;
+    this.root.position.set(pos.x, pos.y * TILT);
+    this.root.zIndex = pos.y * TILT;
 
     const R = p.radius;
     const moving = speed > 30 && p.mode !== "down" && p.mode !== "frozen";
@@ -202,13 +200,16 @@ class PlayerView {
   }
 }
 
-/** Koko pelinäkymä: areena, yleisö, hahmot, pallo, powerupit ja efektit. */
+/** Koko pelinäkymä: areena, yleisö, hahmot, pallo, powerupit, efektit ja seuraava kamera (päätös 32). */
 export class GameView {
-  readonly root = new Container(); // sisältää kameran
+  readonly root = new Container();
   private world = new Container();
+  private overlay = new Container(); // ruudun koordinaateissa: nuolet ruudun ulkopuolisille pelaajille
+  private sky: Sprite;
   private crowd: { head: Sprite; body: Sprite; base: number; phase: number; team: number }[] = [];
-  private crowdLayer = new Container();
-  private ledFlash = new Graphics();
+  private crowdBack = new Container();
+  private crowdFront = new Container();
+  private layers: ArenaLayers;
   private hazardLayer = new Container();
   private pickupLayer = new Container();
   private actors = new Container();
@@ -221,6 +222,7 @@ export class GameView {
   private pickups = new Map<number, { root: Container; glow: Sprite; icon: Sprite; born: number }>();
   private hazards = new Map<number, Sprite>();
   private pickupTex = new Map<string, Texture>();
+  private arrows = new Map<number, { g: Graphics; t: Text }>();
   private peelTex: Texture;
   private shadowT: Texture;
   private starT: Texture;
@@ -234,24 +236,29 @@ export class GameView {
   private ledColor = 0xffffff;
   private ledAlpha = 0;
   private ballRoll = 0;
-  private zoom = 1;
+  private cam = { x: 0, y: 0, zoom: 1, init: false };
+  private goalFocus: { x: number; until: number } | null = null;
   private arena: Arena;
+  private screenW = 0;
+  private screenH = 0;
   roster = new Map<number, RosterInfo>();
   onHitstop: ((ms: number) => void) | null = null;
-  /** Kehitystilan lähikuva: zoomaa ja keskitä pisteeseen. */
+  /** Kehitystilan lähikuva: zoomaa ja keskitä pisteeseen (maailman koordinaateissa). */
   debugFocus: { x: number; y: number; zoom: number } | null = null;
 
-  constructor(arena: Arena, resolution: number) {
+  constructor(arena: Arena, _resolution: number) {
     this.arena = arena;
     this.shadowT = shadowTex();
     this.starT = sparkle(48);
     this.glowT = softDot(128);
     this.peelTex = bananaPeelTexture();
-    const bg = new Sprite(arenaTexture(arena, Math.min(2, Math.max(1, resolution))));
-    bg.anchor.set(0.5);
-    bg.scale.set(1 / Math.min(2, Math.max(1, resolution)));
+    this.fx.project = (x, y) => ({ x, y: y * TILT });
+    this.layers = buildArena(arena);
+    this.sky = new Sprite(skyTexture());
+    this.sky.anchor.set(0.5, 1);
     this.buildCrowd();
     this.actors.sortableChildren = true;
+    for (const post of this.layers.posts) this.actors.addChild(post);
     this.ballShadow = new Sprite(this.shadowT);
     this.ballShadow.anchor.set(0.5);
     this.ball = new Sprite(ballTexture(14));
@@ -261,51 +268,130 @@ export class GameView {
     this.ballGlow.anchor.set(0.5);
     this.ballGlow.blendMode = "add";
     this.ballGlow.tint = 0xff6a2e;
-    this.world.addChild(bg, this.crowdLayer, this.ledFlash, this.fx.under, this.hazardLayer, this.pickupLayer, this.trail, this.ballShadow, this.actors, this.ballGlow, this.fx.over, this.fx.text);
+    this.world.addChild(
+      this.sky,
+      this.crowdBack,
+      this.layers.back,
+      this.fx.under,
+      this.hazardLayer,
+      this.pickupLayer,
+      this.trail,
+      this.ballShadow,
+      this.actors,
+      this.layers.front,
+      this.crowdFront,
+      this.ballGlow,
+      this.fx.over,
+      this.fx.text,
+    );
     this.actors.addChild(this.ball);
-    this.root.addChild(this.world);
+    this.root.addChild(this.world, this.overlay);
   }
 
+  /** Katsomo kaukaisen laidan takana ja tummat siluetit etualalla. */
   private buildCrowd() {
-    const head = solidDot(32);
+    const dot = solidDot(32);
     const skins = [0xf1c7a3, 0xd9a07a, 0x9c6b4a, 0x6b4630, 0xffe0bd];
-    const rows = [
-      { y: -434, count: 70, size: 7 },
-      { y: VIEW_H / 2 - 82, count: 58, size: 11 },
-      { y: VIEW_H / 2 - 56, count: 62, size: 12 },
-      { y: VIEW_H / 2 - 28, count: 66, size: 13 },
-    ];
-    for (const row of rows) {
-      for (let i = 0; i < row.count; i++) {
-        const x = -VIEW_W / 2 + ((i + (row.y % 2 ? 0.5 : 0) + Math.random() * 0.4) / row.count) * VIEW_W;
+    const { halfWidth: w, halfHeight: h, goalDepth: d } = this.arena;
+    const top = -h * TILT - WALL_H;
+    const stands = new Graphics();
+    stands.rect(-w - d - 400, top - 250, (w + d + 400) * 2, 250).fill(0x2a1c42);
+    for (let i = 0; i < 7; i++) stands.rect(-w - d - 400, top - 30 - i * 32, (w + d + 400) * 2, 4).fill({ color: 0x000000, alpha: 0.25 });
+    this.crowdBack.addChild(stands);
+    for (let row = 6; row >= 0; row--) {
+      const y = top - 26 - row * 32;
+      const size = 11 - row * 0.4;
+      const count = Math.round(((w + d + 380) * 2) / (size * 2.3));
+      for (let i = 0; i < count; i++) {
+        const x = -w - d - 380 + ((i + (row % 2) * 0.5 + Math.random() * 0.3) / count) * (w + d + 380) * 2;
         const team = x < 0 ? 0 : 1;
-        const shirt = Math.random() < 0.7 ? TEAM_NUM[team] : [0xffe14d, 0xffffff, 0x7cff6b, 0xc77dff][i % 4];
-        const body = new Sprite(head);
+        const body = new Sprite(dot);
         body.anchor.set(0.5);
-        body.tint = shirt;
-        body.scale.set((row.size * 2.2) / 32, (row.size * 1.6) / 32);
-        const h = new Sprite(head);
-        h.anchor.set(0.5);
-        h.tint = skins[Math.floor(Math.random() * skins.length)];
-        h.scale.set((row.size * 1.25) / 32);
-        this.crowdLayer.addChild(body, h);
-        this.crowd.push({ head: h, body, base: row.y, phase: Math.random() * 10, team });
-        body.position.set(x, row.y + row.size * 0.8);
-        h.position.set(x, row.y);
+        body.tint = Math.random() < 0.7 ? TEAM_NUM[team] : [0xffe14d, 0xffffff, 0x7cff6b, 0xc77dff][i % 4];
+        body.scale.set((size * 2.2) / 32, (size * 1.5) / 32);
+        const head = new Sprite(dot);
+        head.anchor.set(0.5);
+        head.tint = skins[Math.floor(Math.random() * skins.length)];
+        head.scale.set((size * 1.25) / 32);
+        const shade = 1 - row * 0.06;
+        body.alpha = head.alpha = shade;
+        this.crowdBack.addChild(body, head);
+        this.crowd.push({ head, body, base: y, phase: Math.random() * 10, team });
+        body.position.set(x, y + size * 0.8);
+        head.position.set(x, y);
       }
     }
+    // Etualan siluetit: lähimmän katsomon päät ja olkapäät kameran edessä.
+    const front = new Graphics();
+    const fy = h * TILT + 118;
+    for (let x = -w - d - 300; x < w + d + 300; x += 70 + Math.random() * 30) {
+      const s = 26 + Math.random() * 10;
+      front.ellipse(x, fy + s * 0.9, s * 1.5, s * 0.9).fill(0x120b1e);
+      front.circle(x, fy - s * 0.2, s * 0.8).fill(0x120b1e);
+    }
+    front.rect(-w - d - 400, fy + 20, (w + d + 400) * 2, 200).fill(0x120b1e);
+    this.crowdFront.addChild(front);
   }
 
-  resize(w: number, h: number) {
-    const s = Math.min(w / VIEW_W, h / VIEW_H) * this.zoom;
-    this.world.scale.set(s);
-    this.root.position.set(w / 2, h / 2);
-  }
-
-  private viewSize = { w: 0, h: 0 };
   setViewport(w: number, h: number) {
-    this.viewSize = { w, h };
-    this.resize(w, h);
+    this.screenW = w;
+    this.screenH = h;
+  }
+
+  private project = (p: Vec, z = 0) => ({ x: p.x, y: p.y * TILT - z });
+
+  /** Kamera seuraa palloa ja katsoo sen kulkusuuntaan; maalin jälkeen se kääntyy maalille. */
+  private updateCamera(curr: GameState, dt: number) {
+    const W = this.screenW || 1;
+    const H = this.screenH || 1;
+    const b = this.layers.bounds;
+    // Näkyvissä noin 980 × 600 yksikköä: hahmot noin 1,7× isompia kuin koko kentän näkymässä.
+    let zoom = Math.min(W / 980, H / 600);
+    const ball = curr.ball;
+    let tx = ball.pos.x + ball.vel.x * 0.3;
+    let ty = (ball.pos.y + ball.vel.y * 0.2) * TILT;
+    if (curr.phase === "countdown") {
+      tx = 0;
+      ty = 0;
+    }
+    if (this.goalFocus && this.time < this.goalFocus.until) {
+      tx = this.goalFocus.x * 0.85;
+      ty = 0;
+      zoom *= 1.08;
+    }
+    if (this.debugFocus) {
+      tx = this.debugFocus.x;
+      ty = this.debugFocus.y * TILT;
+      zoom *= this.debugFocus.zoom;
+    }
+    const halfW = W / zoom / 2;
+    const halfH = H / zoom / 2;
+    const clamp = (v: number, lo: number, hi: number) => (lo > hi ? (lo + hi) / 2 : Math.max(lo, Math.min(hi, v)));
+    tx = clamp(tx, b.minX + halfW, b.maxX - halfW);
+    ty = clamp(ty, b.minY + halfH, b.maxY - halfH);
+    if (!this.cam.init || this.debugFocus) {
+      this.cam = { x: tx, y: ty, zoom, init: true };
+    } else {
+      const k = 1 - Math.exp(-dt * 6);
+      this.cam.x += (tx - this.cam.x) * k;
+      this.cam.y += (ty - this.cam.y) * k;
+      this.cam.zoom += (zoom - this.cam.zoom) * (1 - Math.exp(-dt * 3));
+      // Pallo ei koskaan karkaa ruudun reunalle: kova raja 32 % / 28 % keskeltä.
+      if (curr.phase === "play") {
+        const bx = ball.pos.x;
+        const by = ball.pos.y * TILT;
+        const mx = (W / this.cam.zoom) * 0.32;
+        const my = (H / this.cam.zoom) * 0.28;
+        this.cam.x = clamp(Math.max(bx - mx, Math.min(bx + mx, this.cam.x)), b.minX + halfW, b.maxX - halfW);
+        this.cam.y = clamp(Math.max(by - my, Math.min(by + my, this.cam.y)), b.minY + halfH, b.maxY - halfH);
+      }
+    }
+    this.world.scale.set(this.cam.zoom);
+    this.world.pivot.set(this.cam.x, this.cam.y);
+    this.world.position.set(W / 2 + this.shake.x, H / 2 + this.shake.y);
+    this.world.rotation = this.shake.rot;
+    // Taivas liikkuu hitaammin kuin kenttä (parallaksi).
+    this.sky.position.set(this.cam.x * 0.55, b.minY + 40 + (this.cam.y - b.minY) * 0.35);
   }
 
   /** Piirtää kahden tilan välistä (alpha 0..1). dt on todellinen aika sekunteina. */
@@ -314,7 +400,6 @@ export class GameView {
     const t = this.time;
     const at = (a: Vec, b: Vec) => ({ x: lerp(a.x, b.x, alpha), y: lerp(a.y, b.y, alpha) });
 
-    // Hahmot
     const seen = new Set<number>();
     for (const p of curr.players) {
       seen.add(p.id);
@@ -334,25 +419,27 @@ export class GameView {
         this.players.delete(id);
       }
 
-    // Pallo: vierii, hyppää kovissa laukauksissa ja jättää vanan.
+    // Pallo: vierii, nousee kovissa laukauksissa ja jättää vanan.
     const b = at(prev.ball.pos, curr.ball.pos);
     const speed = Math.hypot(curr.ball.vel.x, curr.ball.vel.y);
-    const lift = Math.min(1, Math.max(0, (speed - 650) / 900));
+    const lift = Math.min(1, Math.max(0, (speed - 650) / 900)) * 16;
+    const bp = this.project(b, lift);
     this.ballRoll += (speed * dt) / curr.ball.radius;
-    this.ball.position.set(b.x, b.y - lift * 10);
+    this.ball.position.set(bp.x, bp.y);
     this.ball.rotation = this.ballRoll * 0.25;
-    this.ball.scale.set((1 / 4) * (1 + lift * 0.18));
-    this.ball.zIndex = b.y + 1;
-    this.ballShadow.position.set(b.x + lift * 5, b.y + curr.ball.radius * 0.8);
-    this.ballShadow.scale.set((curr.ball.radius * 2.4) / 128, (curr.ball.radius * 1.2) / 64);
-    this.ballShadow.alpha = 1 - lift * 0.4;
+    this.ball.scale.set((1 / 4) * (1 + lift / 90));
+    this.ball.zIndex = b.y * TILT + 1;
+    const gp = this.project(b);
+    this.ballShadow.position.set(gp.x + lift * 0.3, gp.y + curr.ball.radius * 0.6);
+    this.ballShadow.scale.set((curr.ball.radius * 2.4) / 128, (curr.ball.radius * 1.1) / 64);
+    this.ballShadow.alpha = 1 - lift / 40;
     this.ballGlow.visible = curr.ball.fire;
     if (curr.ball.fire) {
-      this.ballGlow.position.set(b.x, b.y);
+      this.ballGlow.position.set(bp.x, bp.y);
       this.ballGlow.scale.set(1.2 + Math.sin(t * 30) * 0.1);
       this.fx.emit("soft", b.x, b.y, { count: 3, color: [0xff4f2e, 0xffb020, 0xffe14d], speed: [20, 90], size: [16, 30], endSize: 2, life: [0.2, 0.45] });
     }
-    this.trailPts.push({ x: b.x, y: b.y - lift * 10 });
+    this.trailPts.push(bp);
     if (this.trailPts.length > 12) this.trailPts.shift();
     const tr = this.trail.clear();
     if (speed > 600) {
@@ -367,11 +454,11 @@ export class GameView {
       this.trailPts.splice(0, this.trailPts.length - 2);
     }
 
-    this.syncPickups(curr.pickups, curr.tick);
+    this.syncPickups(curr.pickups);
     this.syncHazards(curr);
 
     // Yleisö innostuu, kun pallo on lähellä maalia.
-    const nearGoal = Math.max(0, (Math.abs(curr.ball.pos.x) - 300) / (this.arena.halfWidth - 300));
+    const nearGoal = Math.max(0, (Math.abs(curr.ball.pos.x) - this.arena.halfWidth * 0.45) / (this.arena.halfWidth * 0.55));
     this.excitement = lerp(this.excitement, curr.phase === "goal" ? 1 : nearGoal * 0.7, Math.min(1, dt * 2));
     setCrowd(this.excitement);
     const cheering = t < this.cheerUntil;
@@ -383,24 +470,56 @@ export class GameView {
     }
 
     this.ledAlpha = Math.max(0, this.ledAlpha - dt * 1.2);
-    const led = this.ledFlash.clear();
-    if (this.ledAlpha > 0) {
-      const pts = this.arena.outline.flatMap((p) => [p.x, p.y]);
-      const on = Math.sin(t * 24) > 0 ? 1 : 0.5;
-      led.poly(pts).stroke({ width: BOARD * 2, color: this.ledColor, alpha: this.ledAlpha * 0.55 * on });
-    }
+    drawLedFlash(this.layers.ledFlash, this.arena, this.ledColor, this.ledAlpha > 0 ? this.ledAlpha * 0.6 * (Math.sin(t * 24) > 0 ? 1 : 0.4) : 0);
+    this.layers.ads.forEach((ad, i) => (ad.alpha = this.ledAlpha > 0 ? 1 : 0.75 + Math.sin(t * 1.5 + i) * 0.05));
 
     this.fx.update(dt);
     this.shake.update(dt, reducedMotion);
-    const targetZoom = this.debugFocus?.zoom ?? (curr.phase === "goal" ? 1.04 : 1);
-    this.zoom = this.debugFocus ? targetZoom : lerp(this.zoom, targetZoom, Math.min(1, dt * 3));
-    this.resize(this.viewSize.w, this.viewSize.h);
-    this.world.pivot.set(this.debugFocus?.x ?? 0, this.debugFocus?.y ?? 0);
-    this.world.position.set(this.shake.x, this.shake.y);
-    this.world.rotation = this.shake.rot;
+    this.updateCamera(curr, dt);
+    this.updateArrows(curr, alpha, prev);
   }
 
-  private syncPickups(list: Pickup[], tick: number) {
+  /** Ruudun ulkopuolella olevat ihmispelaajat näkyvät reunalla nuolena omalla värillään. */
+  private updateArrows(curr: GameState, alpha: number, prev: GameState) {
+    const W = this.screenW;
+    const H = this.screenH;
+    const used = new Set<number>();
+    for (const p of curr.players) {
+      if (p.controller === null) continue;
+      const info = this.roster.get(p.controller);
+      if (!info) continue;
+      const q = prev.players.find((x) => x.id === p.id) ?? p;
+      const wx = lerp(q.pos.x, p.pos.x, alpha);
+      const wy = lerp(q.pos.y, p.pos.y, alpha) * TILT - p.radius;
+      const sx = (wx - this.cam.x) * this.cam.zoom + W / 2;
+      const sy = (wy - this.cam.y) * this.cam.zoom + H / 2;
+      const m = 34;
+      const top = 86; // tulostaulun alapuolelle
+      if (sx >= m && sx <= W - m && sy >= top && sy <= H - m) continue;
+      used.add(p.controller);
+      let a = this.arrows.get(p.controller);
+      if (!a) {
+        a = { g: new Graphics(), t: new Text({ text: "", style: { fontFamily: "Bungee", fontSize: 14, fill: 0x1c1430 } }) };
+        a.t.anchor.set(0.5);
+        this.overlay.addChild(a.g, a.t);
+        this.arrows.set(p.controller, a);
+      }
+      const cx = Math.max(m, Math.min(W - m, sx));
+      const cy = Math.max(top, Math.min(H - m, sy));
+      const ang = Math.atan2(sy - cy, sx - cx);
+      const g = a.g.clear();
+      g.circle(0, 0, 20).fill(info.color).stroke({ width: 3, color: 0x1c1430 });
+      g.poly([24, 0, 14, -9, 14, 9]).fill(info.color).stroke({ width: 2.5, color: 0x1c1430 });
+      g.position.set(cx, cy);
+      g.rotation = ang;
+      a.t.text = info.name;
+      a.t.position.set(cx, cy);
+      a.g.visible = a.t.visible = true;
+    }
+    for (const [slot, a] of this.arrows) if (!used.has(slot)) a.g.visible = a.t.visible = false;
+  }
+
+  private syncPickups(list: Pickup[]) {
     const ids = new Set(list.map((p) => p.id));
     for (const [id, v] of this.pickups)
       if (!ids.has(id)) {
@@ -421,8 +540,8 @@ export class GameView {
         icon.anchor.set(0.5);
         const shadow = new Sprite(this.shadowT);
         shadow.anchor.set(0.5);
-        shadow.scale.set(0.4, 0.4);
-        shadow.y = 26;
+        shadow.scale.set(0.4, 0.35);
+        shadow.y = 4;
         root.addChild(shadow, glow, icon);
         this.pickupLayer.addChild(root);
         v = { root, glow, icon, born: this.time };
@@ -430,15 +549,15 @@ export class GameView {
       }
       const age = this.time - v.born;
       const pop = Math.min(1, age * 3);
-      v.root.position.set(p.pos.x, p.pos.y);
-      v.icon.y = -8 + Math.sin(this.time * 3 + p.id) * 5;
-      v.icon.scale.set((0.25 * (pop < 1 ? pop * 1.2 : 1)) * (1 + Math.sin(this.time * 6) * 0.03));
+      const at = this.project(p.pos);
+      v.root.position.set(at.x, at.y);
+      v.icon.y = -30 + Math.sin(this.time * 3 + p.id) * 6;
+      v.icon.scale.set(0.25 * (pop < 1 ? pop * 1.2 : 1) * (1 + Math.sin(this.time * 6) * 0.03));
       v.icon.rotation = Math.sin(this.time * 2 + p.id) * 0.15;
       v.glow.y = v.icon.y;
       v.glow.scale.set(0.9 + Math.sin(this.time * 4) * 0.15);
       v.glow.alpha = 0.55;
     }
-    void tick;
   }
 
   private syncHazards(state: GameState) {
@@ -452,9 +571,10 @@ export class GameView {
       if (this.hazards.has(h.id)) continue;
       const s = new Sprite(this.peelTex);
       s.anchor.set(0.5);
-      s.scale.set(0.3);
+      s.scale.set(0.3, 0.3 * TILT);
       s.rotation = Math.random() * 6;
-      s.position.set(h.pos.x, h.pos.y);
+      const at = this.project(h.pos);
+      s.position.set(at.x, at.y);
       this.hazardLayer.addChild(s);
       this.hazards.set(h.id, s);
     }
@@ -560,6 +680,7 @@ export class GameView {
           this.cheerUntil = this.time + 3;
           this.ledColor = col;
           this.ledAlpha = 1.5;
+          this.goalFocus = { x: gx, until: this.time + 2.4 };
           this.onHitstop?.(120);
           break;
         }
@@ -575,4 +696,47 @@ export class GameView {
   destroy() {
     this.root.destroy({ children: true });
   }
+}
+
+/** Auringonlaskun taivas ja kaupungin siluetti katsomon takana. */
+function skyTexture(): Texture {
+  const W = 3200;
+  const H = 520;
+  const c = document.createElement("canvas");
+  c.width = W;
+  c.height = H;
+  const ctx = c.getContext("2d")!;
+  const g = ctx.createLinearGradient(0, 0, 0, H);
+  g.addColorStop(0, "#ff8a5b");
+  g.addColorStop(0.45, "#d14d7c");
+  g.addColorStop(1, "#3a2152");
+  ctx.fillStyle = g;
+  ctx.fillRect(0, 0, W, H);
+  const sun = ctx.createRadialGradient(W * 0.36, H * 0.55, 10, W * 0.36, H * 0.55, 300);
+  sun.addColorStop(0, "rgba(255,236,160,1)");
+  sun.addColorStop(0.3, "rgba(255,190,110,0.7)");
+  sun.addColorStop(1, "rgba(255,120,90,0)");
+  ctx.fillStyle = sun;
+  ctx.fillRect(0, 0, W, H);
+  let s = 7;
+  const rnd = () => ((s = (s * 1664525 + 1013904223) >>> 0) / 4294967296);
+  for (const layer of [
+    { col: "#6a2f6d", base: H - 40, hMin: 60, hMax: 170 },
+    { col: "#2c1a42", base: H, hMin: 40, hMax: 140 },
+  ]) {
+    let x = 0;
+    while (x < W) {
+      const bw = 40 + rnd() * 110;
+      const bh = layer.hMin + rnd() * (layer.hMax - layer.hMin);
+      ctx.fillStyle = layer.col;
+      ctx.fillRect(x, layer.base - bh, bw - 4, bh);
+      if (layer.col === "#2c1a42") {
+        ctx.fillStyle = "rgba(255,210,120,0.55)";
+        for (let wy = layer.base - bh + 10; wy < layer.base - 8; wy += 14)
+          for (let wx = x + 8; wx < x + bw - 12; wx += 12) if (rnd() < 0.3) ctx.fillRect(wx, wy, 5, 6);
+      }
+      x += bw;
+    }
+  }
+  return Texture.from(c);
 }

@@ -40,6 +40,7 @@ Merkinnät: **[G]** Valtterin päätös · **[E]** Clauden ehdotus, ei vielä ku
 | 29 | [E] | Visuaalinen suunta "kattoareena auringonlaskussa": taivas koralli–magenta–luumu, kenttä luumuasfalttia keltaisin viivoin, kromilaidat ja joukkuevärein hehkuvat LED-nauhat. BLAZE (#FF5A36) vs FROST (#3CC8FF). Fontit Bungee (logo, tulostaulu, bannerit) ja Rubik (muu teksti). Hahmot chibi-tyylisiä: paita joukkueen väriä, pää ja hattu kertovat hahmon. Kaikki taide piirretään koodilla, äänet syntetisoidaan. | 23.9.2026 |
 | 30 | [E] | LAN-host: `npm run host` rakentaa pelin ja jakaa sen porttiin 8080. Aulassa näkyy kotiverkon osoite ja QR-koodi. Jos selain lakkaa lähettämästä syötteitä yli 0,5 s, sen hahmo pysähtyy. | 23.9.2026 |
 | 31 | [G] | GitHub: julkinen repo Valttern/LanBall, peli julkaistaan GitHub Pagesiin (https://valttern.github.io/LanBall/) jokaisen mainiin pushatun muutoksen jälkeen, kun testit menevät läpi. Pagesissa toimii peli samalla koneella; LAN vaatii hostin. Repo tunnistautuu Valttern-tilillä omalla git-asetuksellaan, koneen oletustili pysyy kalaherkut. | 23.9.2026 |
+| 32 | [G] | Kamera ja kenttä Tape to Tape -tyyliin (kumoaa päätöksen 14 kohdan "yksi ruutu, ei kameraa"): kenttä noin 1,6× isompi kumpaankin suuntaan, kamera seuraa palloa zoomattuna ja vino kuvakulma (syvyyssuunta litistetty, laidoilla korkeus). Ruudun ulkopuolella olevat ihmispelaajat näkyvät reunanuolina. Näyte näytetään kuvana ennen viimeistelyä. | 23.9.2026 |
 
 ## Arkkitehtuuri
 

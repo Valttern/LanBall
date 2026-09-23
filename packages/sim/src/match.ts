@@ -69,10 +69,11 @@ export function createMatch(arena: Arena, setup: MatchSetup = { humans: [] }): G
     events: [],
   };
 
+  // Muodostelma suhteessa kentän kokoon: keskushyökkääjä ja kaksi laitapuolustajaa.
   const formation = [
-    { x: 160, y: 0 },
-    { x: 420, y: -180 },
-    { x: 420, y: 180 },
+    { x: arena.halfWidth * 0.2, y: 0 },
+    { x: arena.halfWidth * 0.58, y: -arena.halfHeight * 0.45 },
+    { x: arena.halfWidth * 0.58, y: arena.halfHeight * 0.45 },
   ];
   for (const team of [0, 1] as const) {
     const s = team === 0 ? -1 : 1;

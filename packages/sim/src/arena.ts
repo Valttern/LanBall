@@ -1,11 +1,12 @@
 import type { Arena, ArenaDef, Segment, Vec } from "./types.ts";
 
+/** Kaukalomainen kenttä, joka on isompi kuin ruutu: kamera seuraa peliä (päätös 32). */
 export const DEFAULT_ARENA: ArenaDef = {
-  halfWidth: 700,
-  halfHeight: 380,
-  cornerRadius: 110,
-  goalHalfWidth: 90,
-  goalDepth: 70,
+  halfWidth: 1120,
+  halfHeight: 610,
+  cornerRadius: 170,
+  goalHalfWidth: 105,
+  goalDepth: 80,
 };
 
 const CORNER_STEPS = 10;

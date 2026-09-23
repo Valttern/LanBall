@@ -34,6 +34,8 @@ export class Fx {
   private live: Particle[] = [];
   private pool: Sprite[] = [];
   private popups: Popup[] = [];
+  /** Maailman koordinaatit ruudulle (vino kuvakulma). Kaikki emit- ja popup-kutsut annetaan maailman koordinaateissa. */
+  project: (x: number, y: number) => { x: number; y: number } = (x, y) => ({ x, y });
 
   constructor() {
     this.tex = { soft: softDot(), dot: solidDot(), spark: sparkle(), confetti: confettiTex() };
@@ -61,6 +63,7 @@ export class Fx {
     } = {},
   ) {
     const count = opts.count ?? 8;
+    ({ x, y } = this.project(x, y));
     for (let i = 0; i < count; i++) {
       const s = this.pool.pop() ?? new Sprite();
       s.texture = this.tex[kind];
@@ -106,7 +109,8 @@ export class Fx {
       },
     });
     t.anchor.set(0.5);
-    t.position.set(x, y);
+    const at = this.project(x, y);
+    t.position.set(at.x, at.y);
     t.rotation = (Math.random() - 0.5) * 0.25;
     this.text.addChild(t);
     this.popups.push({ t, life: 0.9, max: 0.9, vy: -70 });
