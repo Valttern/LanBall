@@ -83,7 +83,7 @@ export function tryGrab(state: GameState) {
   let bestDist = Infinity;
   for (const p of state.players) {
     if (!canGrab(state, p)) continue;
-    const reach = TUNING.grabReach + (p.role === "keeper" ? 10 : 0);
+    const reach = TUNING.grabReach + (p.role === "keeper" ? TUNING.ai.keeperReach : 0);
     const d = Math.hypot(ball.pos.x - p.pos.x, ball.pos.y - p.pos.y) - p.radius - ball.radius;
     if (d < reach && d < bestDist) {
       best = p;

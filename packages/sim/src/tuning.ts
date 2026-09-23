@@ -12,7 +12,7 @@ export const TUNING = {
   playerTurnRate: 10, // katseen kääntymisnopeus (rad/s)
   carrierTurnRate: 7, // pallon kanssa käännytään hitaammin
   keeperRadius: 29,
-  keeperSpeed: 335,
+  keeperSpeed: 315,
   ballRadius: 14,
   ballMass: 1,
   ballFriction: 0.7, // eksponentiaalinen hidastus (1/s)
@@ -88,6 +88,19 @@ export const TUNING = {
   bananaCount: 3,
   bananaLife: 20,
   slipTime: 1.1,
+
+  // Tekoälyn taso (päätös 35): yksi paikka, josta vaikeutta säädetään.
+  ai: {
+    tackleRange: 60, // kuinka läheltä liukutaklaus yritetään (rako hahmojen välissä)
+    tackleChance: 0.18, // todennäköisyys per harkinta, kun kuljettaja on kantamalla
+    tackleFacing: 0.85, // taklataan vain, kun katse osoittaa kuljettajaa melko suoraan
+    tackleRest: [1.6, 2.6] as const, // tauko taklausyrityksen jälkeen (s)
+    chaseSpeed: 0.88, // pallon jahtaaminen ei täysillä
+    aimError: 0.55, // laukauksen hajonta maalin puolikkaan leveydestä
+    think: [0.6, 1.0] as const, // syöttöpäätösten väli (s)
+    keeperReach: 4, // maalivahdin lisäulottuvuus nappaamiseen
+    keeperDiveTime: 0.28, // kuinka myöhään maalivahti vielä syöksyy (s)
+  },
 
   // Ohjauksen vaihto (päätös 10 ja 15)
   autoSwitchMargin: 110,

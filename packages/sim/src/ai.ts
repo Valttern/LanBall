@@ -104,7 +104,8 @@ function carrierAi(state: GameState, arena: Arena, p: Player, inp: InputState): 
   }
 
   const keeper = state.players.find((q) => q.team !== p.team && q.role === "keeper");
-  const aimY = keeper && keeper.pos.y > 0 ? -g * 0.62 : g * 0.62;
+  // Tähtäys kulmaan maalivahdista poispäin, hajonnalla: osa laukauksista menee ohi.
+  const aimY = (keeper && keeper.pos.y > 0 ? -g * 0.62 : g * 0.62) + (rand(state) * 2 - 1) * g * TUNING.ai.aimError;
   const shotTarget = { x: gx, y: aimY };
 
   // Laukaus latautuu: pidä nappi pohjassa ja päästä irti, kun lataus on valmis.
@@ -132,7 +133,7 @@ function carrierAi(state: GameState, arena: Arena, p: Player, inp: InputState): 
 
   // Harkinta muutaman kerran sekunnissa: syötä, jos painostetaan tai joku on paremmassa paikassa.
   if (state.tick >= p.ai.thinkAt) {
-    p.ai.thinkAt = state.tick + secs(0.4 + rand(state) * 0.3);
+    p.ai.thinkAt = state.tick + secs(TUNING.ai.think[0] + rand(state) * (TUNING.ai.think[1] - TUNING.ai.think[0]));
     const pressured = oppDist < 120;
     const mate = passTarget(state, arena, p, !pressured);
     if (mate && (pressured || rand(state) < 0.3)) {
@@ -198,11 +199,15 @@ function fieldAi(state: GameState, arena: Arena, p: Player, inp: InputState): In
     if (rank === 0 || (rank === 1 && mates[0].controller !== null && dist(mates[0].pos, ball.pos) > 200)) {
       const t = Math.min(0.5, dist(p.pos, ball.pos) / 600);
       moveTo(inp, p.pos, { x: ball.pos.x + ball.vel.x * t, y: ball.pos.y + ball.vel.y * t }, 8);
-      if (owner && dist(p.pos, owner.pos) < 85 + p.radius && state.tick >= p.ai.tackleReadyAt && facingCos(p, owner.pos) > 0.75) {
-        p.ai.tackleReadyAt = state.tick + secs(0.25);
-        if (rand(state) < 0.35) {
+      inp.moveX *= TUNING.ai.chaseSpeed;
+      inp.moveY *= TUNING.ai.chaseSpeed;
+      const ai = TUNING.ai;
+      const gap = owner ? dist(p.pos, owner.pos) - p.radius - owner.radius : Infinity;
+      if (owner && gap < ai.tackleRange && state.tick >= p.ai.tackleReadyAt && facingCos(p, owner.pos) > ai.tackleFacing) {
+        p.ai.tackleReadyAt = state.tick + secs(0.3);
+        if (rand(state) < ai.tackleChance) {
           inp.tackle = true;
-          p.ai.tackleReadyAt = state.tick + secs(1.2 + rand(state));
+          p.ai.tackleReadyAt = state.tick + secs(ai.tackleRest[0] + rand(state) * (ai.tackleRest[1] - ai.tackleRest[0]));
         }
       }
       return inp;
@@ -248,7 +253,7 @@ function keeperAi(state: GameState, arena: Arena, p: Player, inp: InputState): I
       const spot = { x: gx + s * 40, y };
       moveTo(inp, p.pos, spot, 6);
       // Syöksy, jos laukaus menee ohi kädenmitan eikä aikaa ole.
-      if (Math.abs(p.pos.y - y) > p.radius + 6 && t < 0.35 && state.tick >= p.actionReadyAt) inp.tackle = true;
+      if (Math.abs(p.pos.y - y) > p.radius + 6 && t < TUNING.ai.keeperDiveTime && state.tick >= p.actionReadyAt) inp.tackle = true;
       return inp;
     }
   }
