@@ -7,8 +7,12 @@
   ],
   "scripts": {
     "dev": "npm run dev -w @lanball/client",
+    "server": "node packages/server/src/index.ts",
+    "build": "npm run build -w @lanball/client",
+    "host": "npm run build && npm run server",
+    "start": "npm run host",
     "test": "vitest run",
-    "typecheck": "tsc -p packages/sim && tsc -p packages/client"
+    "typecheck": "tsc -p packages/sim && tsc -p packages/server && tsc -p packages/client"
   },
   "devDependencies": {
     "@types/node": "^26.6.2",
