@@ -1,6 +1,7 @@
 import { DT, TICK_RATE, buildArena, createMatch, step } from "@lanball/sim";
 import type { Arena, ArenaDef, ClientMsg, GameEvent, GameState, InputState, MatchSetup, ServerMsg } from "@lanball/sim";
 import type { Device } from "./input/devices.ts";
+import { inputToSim } from "./render/orientation.ts";
 
 export interface Frame {
   prev: GameState;
@@ -55,7 +56,7 @@ export class LocalSession implements Session {
       while (this.acc >= DT) {
         this.acc -= DT;
         const inputs: InputState[] = [];
-        for (const [slot, dev] of this.devices) inputs[slot] = dev.read();
+        for (const [slot, dev] of this.devices) inputs[slot] = inputToSim(dev.read());
         this.prev = this.curr;
         this.curr = step(this.curr, inputs, this.arena);
         events.push(...this.curr.events);
@@ -72,7 +73,7 @@ export class LocalSession implements Session {
   advance(ticks: number, input?: Partial<InputState>) {
     for (let i = 0; i < ticks; i++) {
       const inputs: InputState[] = [];
-      for (const [slot, dev] of this.devices) inputs[slot] = { ...dev.read(), ...input };
+      for (const [slot, dev] of this.devices) inputs[slot] = inputToSim({ ...dev.read(), ...input });
       this.prev = this.curr;
       this.curr = step(this.curr, inputs, this.arena);
     }
@@ -180,7 +181,7 @@ export class NetSession implements Session {
     const frames: Record<number, InputState[]> = {};
     while (this.acc >= DT) {
       this.acc -= DT;
-      for (const [slot, dev] of this.devices) (frames[slot] ??= []).push(dev.read());
+      for (const [slot, dev] of this.devices) (frames[slot] ??= []).push(inputToSim(dev.read()));
     }
     if (Object.keys(frames).length) this.conn.send({ t: "input", frames });
 

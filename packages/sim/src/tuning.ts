@@ -7,15 +7,15 @@ const deg = (d: number) => (d * Math.PI) / 180;
 export const TUNING = {
   playerRadius: 26,
   playerMass: 5,
-  playerMaxSpeed: 340,
+  playerMaxSpeed: 375, // isompi kenttä (päätös 34)
   playerAccel: 10, // kuinka nopeasti nopeus hakeutuu tavoitteeseen (1/s)
   playerTurnRate: 10, // katseen kääntymisnopeus (rad/s)
   carrierTurnRate: 7, // pallon kanssa käännytään hitaammin
   keeperRadius: 29,
-  keeperSpeed: 310,
+  keeperSpeed: 335,
   ballRadius: 14,
   ballMass: 1,
-  ballFriction: 0.8, // eksponentiaalinen hidastus (1/s)
+  ballFriction: 0.7, // eksponentiaalinen hidastus (1/s)
   ballWallRestitution: 0.8,
   playerWallRestitution: 0.1,
   bodyRestitution: 0.4,
@@ -34,20 +34,20 @@ export const TUNING = {
   regrabDelay: 0.4,
   settleTime: 0.25, // napatun pallon asettumisaika, jonka aikana se ei irtoa etäisyyden takia
   carrierSpeedFactor: 0.9,
-  fieldGrabMaxSpeed: 680, // kovempaa palloa kenttäpelaaja ei saa haltuun, se vain kimpoaa
-  keeperGrabMaxSpeed: 1180,
+  fieldGrabMaxSpeed: 720, // kovempaa palloa kenttäpelaaja ei saa haltuun, se vain kimpoaa
+  keeperGrabMaxSpeed: 1280,
 
   // Syöttö (tähtäysapu, [E] 20)
   passConeCos: Math.cos(deg(55)),
-  passMaxDist: 950,
+  passMaxDist: 1250,
   passMinSpeed: 520,
-  passMaxSpeed: 1050,
+  passMaxSpeed: 1150,
   passLead: 0.6,
   passerNoGrab: 0.25,
 
   // Laukaus (ladattava, [E] 21)
-  shotMinSpeed: 780,
-  shotMaxSpeed: 1520,
+  shotMinSpeed: 860,
+  shotMaxSpeed: 1650,
   chargeTime: 0.75,
   volleyReach: 24,
   volleyPower: 0.55,
@@ -84,7 +84,7 @@ export const TUNING = {
   magnetRange: 280,
   magnetAccel: 1500,
   megaTime: 12,
-  megaSpeed: 2150,
+  megaSpeed: 2300,
   bananaCount: 3,
   bananaLife: 20,
   slipTime: 1.1,

@@ -31,7 +31,8 @@ Samalla koneella pelatessa valitaan **Play on this computer**.
 | Taklaus / spurtti | H | - | X tai RB |
 
 Aulassa: syöttönappi liittyy ja merkitsee valmiiksi, vasen/oikea vaihtaa joukkuetta, ylös/alas hahmoa.
-Esc tai Start pysäyttää paikallisen ottelun. M mykistää äänet.
+Esc tai Start pysäyttää paikallisen ottelun. M mykistää äänet. C kääntää kameran: sivulta (maalit
+vasemmalla ja oikealla) tai päädystä (maalit ylhäällä ja alhaalla). Valinta muistetaan selaimessa.
 
 ## Kehitys
 

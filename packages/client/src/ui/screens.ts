@@ -26,7 +26,7 @@ export interface MenuItem {
   sub: string;
 }
 
-export function titleHtml(items: MenuItem[], active: number, muted: boolean) {
+export function titleHtml(items: MenuItem[], active: number, muted: boolean, camera: string) {
   return `
   <div class="title">
     <div class="title-head">
@@ -42,7 +42,10 @@ export function titleHtml(items: MenuItem[], active: number, muted: boolean) {
         .join("")}
     </nav>
     <p class="hint">Move with <kbd>W</kbd><kbd>S</kbd> or a stick. Select with <kbd>F</kbd>, <kbd>Enter</kbd> or <kbd>A</kbd>.</p>
-    <div class="corner"><button class="chip" data-action="mute">${muted ? "Sound off" : "Sound on"} <kbd>M</kbd></button></div>
+    <div class="corner">
+      <button class="chip" data-action="camera">${esc(camera)} <kbd>C</kbd></button>
+      <button class="chip" data-action="mute">${muted ? "Sound off" : "Sound on"} <kbd>M</kbd></button>
+    </div>
   </div>`;
 }
 
@@ -84,6 +87,7 @@ export function lobbyHtml(opts: {
   joinUrl?: string;
   qr?: string;
   joinable: Device[];
+  camera: string;
 }) {
   const { lobby, lan } = opts;
   const side = (team: Team) => {
@@ -121,6 +125,7 @@ export function lobbyHtml(opts: {
       <div class="settings">
         <button data-action="length">Match length<b>${Math.floor(secs / 60)}:${String(secs % 60).padStart(2, "0")}</b></button>
         <button data-action="powerups">Power-ups<b>${lobby.settings.powerups ? "On" : "Off"}</b></button>
+        <button data-action="camera">${esc(opts.camera)} <kbd>C</kbd></button>
         <button class="back" data-action="back">Back to menu <kbd>Esc</kbd></button>
       </div>
     </div>
@@ -160,6 +165,7 @@ export function howtoHtml() {
       </dl></div>
     </div>
     ${moves}
+    <p class="hint">Press <kbd>C</kbd> to turn the camera between sideways and end to end. <kbd>M</kbd> mutes the sound.</p>
     <div class="powerlist"><h3>Power-ups</h3><ul>
       ${kinds.map((k) => `<li><img src="${icon(k)}" alt=""><span><b>${PICKUPS[k].label}</b><br>${desc[k]}</span></li>`).join("")}
     </ul></div>

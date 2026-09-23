@@ -41,6 +41,8 @@ Merkinnät: **[G]** Valtterin päätös · **[E]** Clauden ehdotus, ei vielä ku
 | 30 | [E] | LAN-host: `npm run host` rakentaa pelin ja jakaa sen porttiin 8080. Aulassa näkyy kotiverkon osoite ja QR-koodi. Jos selain lakkaa lähettämästä syötteitä yli 0,5 s, sen hahmo pysähtyy. | 23.9.2026 |
 | 31 | [G] | GitHub: julkinen repo Valttern/LanBall, peli julkaistaan GitHub Pagesiin (https://valttern.github.io/LanBall/) jokaisen mainiin pushatun muutoksen jälkeen, kun testit menevät läpi. Pagesissa toimii peli samalla koneella; LAN vaatii hostin. Repo tunnistautuu Valttern-tilillä omalla git-asetuksellaan, koneen oletustili pysyy kalaherkut. | 23.9.2026 |
 | 32 | [G] | Kamera ja kenttä Tape to Tape -tyyliin (kumoaa päätöksen 14 kohdan "yksi ruutu, ei kameraa"): kenttä noin 1,6× isompi kumpaankin suuntaan, kamera seuraa palloa zoomattuna ja vino kuvakulma (syvyyssuunta litistetty, laidoilla korkeus). Ruudun ulkopuolella olevat ihmispelaajat näkyvät reunanuolina. Näyte näytetään kuvana ennen viimeistelyä. | 23.9.2026 |
+| 33 | [G] | Näyte hyväksytty. Lisäksi kameran suunnan voi vaihtaa: vaaka (maalit vasemmalla ja oikealla) tai pysty (maalit ylhäällä ja alhaalla). Ohjaus on aina ruudun suuntainen. Valinta tallentuu selaimeen, LAN:ssa jokainen valitsee omansa. | 23.9.2026 |
+| 34 | [E] | Isompaan kenttään sovitetut nopeudet: pelaajat +10 %, laukaukset ja syötöt noin +10 %, pallo liukuu pidemmälle. | 23.9.2026 |
 
 ## Arkkitehtuuri
 

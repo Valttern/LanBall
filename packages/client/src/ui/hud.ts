@@ -94,6 +94,7 @@ export class Hud {
       if (p.controller === null || !localSlots.has(p.controller)) continue;
       for (const e of p.effects) {
         const left = Math.ceil((e.until - state.tick) / TICK_RATE);
+        if (left <= 0) continue;
         chips.push(`<span class="power" style="background:${PICKUP_COLORS[e.kind]}">${PICKUPS[e.kind].label} ${left}</span>`);
       }
     }

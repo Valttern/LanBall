@@ -2,7 +2,8 @@ import { Container, Graphics, Sprite, Text, Texture } from "pixi.js";
 import { CHARACTERS, KEEPER, PICKUPS, character, hasEffect } from "@lanball/sim";
 import type { Arena, GameEvent, GameState, Pickup, Player, Vec } from "@lanball/sim";
 import { sfx, setCrowd } from "../audio/audio.ts";
-import { TILT, WALL_H, buildArena, drawLedFlash } from "./arena.ts";
+import { buildArena, drawLedFlash } from "./arena.ts";
+import { TILT, dirToScreen, toScreen } from "./orientation.ts";
 import type { ArenaLayers } from "./arena.ts";
 import {
   CHAR_R,
@@ -89,8 +90,10 @@ class PlayerView {
     const speed = dt > 0 ? Math.hypot(pos.x - this.lastPos.x, pos.y - this.lastPos.y) / dt : 0;
     this.lastPos = { ...pos };
     this.phase += dt * (4 + speed / 30);
-    this.root.position.set(pos.x, pos.y * TILT);
-    this.root.zIndex = pos.y * TILT;
+    const sp = toScreen(pos.x, pos.y);
+    this.root.position.set(sp.x, sp.y);
+    this.root.zIndex = sp.y;
+    const face = dirToScreen(p.facing.x, p.facing.y); // katse ruudun suunnassa
 
     const R = p.radius;
     const moving = speed > 30 && p.mode !== "down" && p.mode !== "frozen";
@@ -113,14 +116,14 @@ class PlayerView {
     if (p.mode !== "down") {
       const stride = moving ? Math.sin(this.phase) * R * 0.28 : 0;
       for (const side of [-1, 1]) {
-        f.ellipse(side * R * 0.42 + p.facing.x * stride * side * 0.3, R * 0.86 + stride * side * 0.35, R * 0.26, R * 0.16).fill(0x1c1430);
+        f.ellipse(side * R * 0.42 + face.x * stride * side * 0.3, R * 0.86 + stride * side * 0.35, R * 0.26, R * 0.16).fill(0x1c1430);
       }
     }
 
-    let eyesVisible = p.facing.y > -0.7;
+    let eyesVisible = face.y > -0.7;
     // Tilat: liuku, kaatunut, jäätynyt
     if (p.mode === "sliding") {
-      this.body.rotation = Math.sign(p.vel.x || p.facing.x) * 0.9;
+      this.body.rotation = Math.sign(dirToScreen(p.vel.x, p.vel.y).x || face.x) * 0.9;
       if (Math.random() < 0.7) fx.emit("soft", pos.x, pos.y + R * 0.8, { count: 1, color: 0xd9c8ff, speed: [10, 40], size: [14, 26], endSize: 40, life: [0.3, 0.5], layer: "under", alpha: 0.35 });
     }
     if (p.mode === "down") {
@@ -160,8 +163,8 @@ class PlayerView {
     this.eyes.scale.set(baseScale);
     if (eyesVisible) {
       const hy = HEAD_Y;
-      const fxv = p.facing.x;
-      const fyv = p.facing.y;
+      const fxv = face.x;
+      const fyv = face.y;
       for (const side of [-1, 1]) {
         const ex = side * 6.8 + fxv * 4;
         const ey = hy + 1 + fyv * 3;
@@ -252,7 +255,7 @@ export class GameView {
     this.starT = sparkle(48);
     this.glowT = softDot(128);
     this.peelTex = bananaPeelTexture();
-    this.fx.project = (x, y) => ({ x, y: y * TILT });
+    this.fx.project = (x, y) => toScreen(x, y);
     this.layers = buildArena(arena);
     this.sky = new Sprite(skyTexture());
     this.sky.anchor.set(0.5, 1);
@@ -288,48 +291,59 @@ export class GameView {
     this.root.addChild(this.world, this.overlay);
   }
 
-  /** Katsomo kaukaisen laidan takana ja tummat siluetit etualalla. */
+  /** Katsomo kentän ympärillä: rivit kaukaisen seinän takana ja sivuilla, tummat siluetit etualalla. */
   private buildCrowd() {
     const dot = solidDot(32);
     const skins = [0xf1c7a3, 0xd9a07a, 0x9c6b4a, 0x6b4630, 0xffe0bd];
-    const { halfWidth: w, halfHeight: h, goalDepth: d } = this.arena;
-    const top = -h * TILT - WALL_H;
+    const { rink, farTop, bounds, goalScreen } = this.layers;
+    const left = bounds.minX - 500;
+    const right = bounds.maxX + 500;
     const stands = new Graphics();
-    stands.rect(-w - d - 400, top - 250, (w + d + 400) * 2, 250).fill(0x2a1c42);
-    for (let i = 0; i < 7; i++) stands.rect(-w - d - 400, top - 30 - i * 32, (w + d + 400) * 2, 4).fill({ color: 0x000000, alpha: 0.25 });
+    stands.rect(left, farTop - 600, right - left, rink.maxY - farTop + 700).fill(0x2a1c42);
+    for (let i = 0; i < 9; i++) stands.rect(left, farTop - 30 - i * 32, right - left, 4).fill({ color: 0x000000, alpha: 0.25 });
     this.crowdBack.addChild(stands);
-    for (let row = 6; row >= 0; row--) {
-      const y = top - 26 - row * 32;
-      const size = 11 - row * 0.4;
-      const count = Math.round(((w + d + 380) * 2) / (size * 2.3));
-      for (let i = 0; i < count; i++) {
-        const x = -w - d - 380 + ((i + (row % 2) * 0.5 + Math.random() * 0.3) / count) * (w + d + 380) * 2;
-        const team = x < 0 ? 0 : 1;
-        const body = new Sprite(dot);
-        body.anchor.set(0.5);
-        body.tint = Math.random() < 0.7 ? TEAM_NUM[team] : [0xffe14d, 0xffffff, 0x7cff6b, 0xc77dff][i % 4];
-        body.scale.set((size * 2.2) / 32, (size * 1.5) / 32);
-        const head = new Sprite(dot);
-        head.anchor.set(0.5);
-        head.tint = skins[Math.floor(Math.random() * skins.length)];
-        head.scale.set((size * 1.25) / 32);
-        const shade = 1 - row * 0.06;
-        body.alpha = head.alpha = shade;
-        this.crowdBack.addChild(body, head);
-        this.crowd.push({ head, body, base: y, phase: Math.random() * 10, team });
-        body.position.set(x, y + size * 0.8);
-        head.position.set(x, y);
+    // Kannattajat istuvat oman joukkueensa maalin puolella.
+    const fanTeam = (x: number, y: number) =>
+      Math.hypot(x - goalScreen[0].x, y - goalScreen[0].y) < Math.hypot(x - goalScreen[1].x, y - goalScreen[1].y) ? 0 : 1;
+    const person = (x: number, y: number, size: number, shade: number) => {
+      const team = fanTeam(x, y);
+      const body = new Sprite(dot);
+      body.anchor.set(0.5);
+      body.tint = Math.random() < 0.7 ? TEAM_NUM[team] : [0xffe14d, 0xffffff, 0x7cff6b, 0xc77dff][Math.floor(Math.random() * 4)];
+      body.scale.set((size * 2.2) / 32, (size * 1.5) / 32);
+      const head = new Sprite(dot);
+      head.anchor.set(0.5);
+      head.tint = skins[Math.floor(Math.random() * skins.length)];
+      head.scale.set((size * 1.25) / 32);
+      body.alpha = head.alpha = shade;
+      this.crowdBack.addChild(body, head);
+      this.crowd.push({ head, body, base: y, phase: Math.random() * 10, team });
+      body.position.set(x, y + size * 0.8);
+      head.position.set(x, y);
+    };
+    // Kaukaisen seinän takana: rivit ylöspäin.
+    for (let row = 8; row >= 0; row--) {
+      const size = 11 - row * 0.35;
+      const step = size * 2.3;
+      for (let x = left + (row % 2) * step * 0.5; x < right; x += step) person(x + Math.random() * 4, farTop - 26 - row * 32, size, 1 - row * 0.05);
+    }
+    // Sivukatsomot kentän vasemmalla ja oikealla puolella: sarakkeet ulospäin.
+    for (const side of [-1, 1]) {
+      const edge = side < 0 ? rink.minX - 90 : rink.maxX + 90;
+      for (let col = 0; col < 12; col++) {
+        const x = edge + side * col * 26;
+        for (let y = farTop + 10; y < rink.maxY + 40; y += 30) person(x + Math.random() * 4, y + (col % 2) * 15, 10, 1 - col * 0.03);
       }
     }
     // Etualan siluetit: lähimmän katsomon päät ja olkapäät kameran edessä.
     const front = new Graphics();
-    const fy = h * TILT + 118;
-    for (let x = -w - d - 300; x < w + d + 300; x += 70 + Math.random() * 30) {
-      const s = 26 + Math.random() * 10;
-      front.ellipse(x, fy + s * 0.9, s * 1.5, s * 0.9).fill(0x120b1e);
-      front.circle(x, fy - s * 0.2, s * 0.8).fill(0x120b1e);
+    const fy = rink.maxY + 118;
+    for (let x = left; x < right; x += 70 + Math.random() * 30) {
+      const sz = 26 + Math.random() * 10;
+      front.ellipse(x, fy + sz * 0.9, sz * 1.5, sz * 0.9).fill(0x120b1e);
+      front.circle(x, fy - sz * 0.2, sz * 0.8).fill(0x120b1e);
     }
-    front.rect(-w - d - 400, fy + 20, (w + d + 400) * 2, 200).fill(0x120b1e);
+    front.rect(left, fy + 20, right - left, 400).fill(0x120b1e);
     this.crowdFront.addChild(front);
   }
 
@@ -338,7 +352,7 @@ export class GameView {
     this.screenH = h;
   }
 
-  private project = (p: Vec, z = 0) => ({ x: p.x, y: p.y * TILT - z });
+  private project = (p: Vec, z = 0) => toScreen(p.x, p.y, z);
 
   /** Kamera seuraa palloa ja katsoo sen kulkusuuntaan; maalin jälkeen se kääntyy maalille. */
   private updateCamera(curr: GameState, dt: number) {
@@ -348,20 +362,23 @@ export class GameView {
     // Näkyvissä noin 980 × 600 yksikköä: hahmot noin 1,7× isompia kuin koko kentän näkymässä.
     let zoom = Math.min(W / 980, H / 600);
     const ball = curr.ball;
-    let tx = ball.pos.x + ball.vel.x * 0.3;
-    let ty = (ball.pos.y + ball.vel.y * 0.2) * TILT;
+    const look = toScreen(ball.pos.x + ball.vel.x * 0.3, ball.pos.y + ball.vel.y * 0.3);
+    let tx = look.x;
+    let ty = look.y;
     if (curr.phase === "countdown") {
       tx = 0;
       ty = 0;
     }
     if (this.goalFocus && this.time < this.goalFocus.until) {
-      tx = this.goalFocus.x * 0.85;
-      ty = 0;
+      const gf = toScreen(this.goalFocus.x * 0.85, 0);
+      tx = gf.x;
+      ty = gf.y;
       zoom *= 1.08;
     }
     if (this.debugFocus) {
-      tx = this.debugFocus.x;
-      ty = this.debugFocus.y * TILT;
+      const df = toScreen(this.debugFocus.x, this.debugFocus.y);
+      tx = df.x;
+      ty = df.y;
       zoom *= this.debugFocus.zoom;
     }
     const halfW = W / zoom / 2;
@@ -378,8 +395,9 @@ export class GameView {
       this.cam.zoom += (zoom - this.cam.zoom) * (1 - Math.exp(-dt * 3));
       // Pallo ei koskaan karkaa ruudun reunalle: kova raja 32 % / 28 % keskeltä.
       if (curr.phase === "play") {
-        const bx = ball.pos.x;
-        const by = ball.pos.y * TILT;
+        const bs = toScreen(ball.pos.x, ball.pos.y);
+        const bx = bs.x;
+        const by = bs.y;
         const mx = (W / this.cam.zoom) * 0.32;
         const my = (H / this.cam.zoom) * 0.28;
         this.cam.x = clamp(Math.max(bx - mx, Math.min(bx + mx, this.cam.x)), b.minX + halfW, b.maxX - halfW);
@@ -428,7 +446,7 @@ export class GameView {
     this.ball.position.set(bp.x, bp.y);
     this.ball.rotation = this.ballRoll * 0.25;
     this.ball.scale.set((1 / 4) * (1 + lift / 90));
-    this.ball.zIndex = b.y * TILT + 1;
+    this.ball.zIndex = this.project(b).y + 1;
     const gp = this.project(b);
     this.ballShadow.position.set(gp.x + lift * 0.3, gp.y + curr.ball.radius * 0.6);
     this.ballShadow.scale.set((curr.ball.radius * 2.4) / 128, (curr.ball.radius * 1.1) / 64);
@@ -470,7 +488,7 @@ export class GameView {
     }
 
     this.ledAlpha = Math.max(0, this.ledAlpha - dt * 1.2);
-    drawLedFlash(this.layers.ledFlash, this.arena, this.ledColor, this.ledAlpha > 0 ? this.ledAlpha * 0.6 * (Math.sin(t * 24) > 0 ? 1 : 0.4) : 0);
+    drawLedFlash(this.layers, this.ledColor, this.ledAlpha > 0 ? this.ledAlpha * 0.6 * (Math.sin(t * 24) > 0 ? 1 : 0.4) : 0);
     this.layers.ads.forEach((ad, i) => (ad.alpha = this.ledAlpha > 0 ? 1 : 0.75 + Math.sin(t * 1.5 + i) * 0.05));
 
     this.fx.update(dt);
@@ -489,8 +507,9 @@ export class GameView {
       const info = this.roster.get(p.controller);
       if (!info) continue;
       const q = prev.players.find((x) => x.id === p.id) ?? p;
-      const wx = lerp(q.pos.x, p.pos.x, alpha);
-      const wy = lerp(q.pos.y, p.pos.y, alpha) * TILT - p.radius;
+      const at = toScreen(lerp(q.pos.x, p.pos.x, alpha), lerp(q.pos.y, p.pos.y, alpha), p.radius);
+      const wx = at.x;
+      const wy = at.y;
       const sx = (wx - this.cam.x) * this.cam.zoom + W / 2;
       const sy = (wy - this.cam.y) * this.cam.zoom + H / 2;
       const m = 34;
@@ -665,7 +684,7 @@ export class GameView {
               count: 70,
               color: [col, 0xffffff, 0xffe14d],
               speed: [300, 900],
-              angle: e.team === 0 ? Math.PI : 0,
+              angle: Math.atan2(dirToScreen(-Math.sign(gx), 0).y, dirToScreen(-Math.sign(gx), 0).x),
               spread: 1.6,
               size: [8, 14],
               endSize: 8,

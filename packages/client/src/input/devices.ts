@@ -209,7 +209,7 @@ const pads = [0, 1, 2, 3].map((i) => new GamepadDevice(i));
 export const ALL_DEVICES: Device[] = [keyboard1, keyboard2, ...pads];
 
 /** Globaalit valikkonäppäimet, joita kukaan ei omista. */
-export const globalKeys = { enter: false, escape: false, space: false, up: false, down: false, m: false };
+export const globalKeys = { enter: false, escape: false, space: false, up: false, down: false, m: false, c: false };
 const prevGlobal = new Set<string>();
 
 /** Kutsutaan kerran ruudunpäivityksessä ennen valikkologiikkaa. */
@@ -224,6 +224,7 @@ export function pollDevices() {
   globalKeys.up = fresh("ArrowUp") || fresh("KeyW");
   globalKeys.down = fresh("ArrowDown") || fresh("KeyS");
   globalKeys.m = fresh("KeyM");
+  globalKeys.c = fresh("KeyC");
   prevGlobal.clear();
   for (const c of held) prevGlobal.add(c);
 }

@@ -120,11 +120,11 @@ function carrierAi(state: GameState, arena: Arena, p: Player, inp: InputState): 
   const dGoal = dist(p.pos, { x: gx, y: 0 });
   const [opp, oppDist] = nearestOpponent(state, p);
 
-  if (dGoal < 520 && Math.abs(p.pos.y) < 300 && (gx - p.pos.x) * s > 60) {
+  if (dGoal < 580 && Math.abs(p.pos.y) < 320 && (gx - p.pos.x) * s > 60) {
     moveTo(inp, p.pos, shotTarget);
     if (facingCos(p, shotTarget) > 0.92 && (laneClear(state, p, p.pos, shotTarget, 20, true) || oppDist < 90)) {
       // Painostettuna laukaistaan heti, muuten ladataan etäisyyden mukaan.
-      p.ai.charge = oppDist < 90 ? 2 : clamp(Math.round((dGoal / 520) * 24 + rand(state) * 8), 4, 30);
+      p.ai.charge = oppDist < 90 ? 2 : clamp(Math.round((dGoal / 580) * 24 + rand(state) * 8), 4, 30);
       inp.shoot = true;
     }
     return inp;

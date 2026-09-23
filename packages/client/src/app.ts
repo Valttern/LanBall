@@ -15,6 +15,7 @@ import type { ArenaDef, GameEvent, GameState, InputState, LobbyPlayer, LobbyStat
 import { isMuted, sfx, startMusic, stopMusic, toggleMute, unlock } from "./audio/audio.ts";
 import { ALL_DEVICES, connectedDevices, deviceById, globalKeys, pollDevices } from "./input/devices.ts";
 import type { Device } from "./input/devices.ts";
+import { orientation, setOrientation } from "./render/orientation.ts";
 import { GameView, warmCharacters } from "./render/view.ts";
 import type { RosterInfo } from "./render/view.ts";
 import { Connection, LocalSession, NetSession } from "./session.ts";
@@ -111,13 +112,28 @@ export class App {
 
   private setSession(session: Session) {
     this.session?.dispose();
-    this.view?.destroy();
     this.session = session;
-    this.view = new GameView(session.arena, this.pixi.renderer.resolution);
+    this.buildView();
+  }
+
+  /** Näkymä rakennetaan uudelleen, kun kameran suunta vaihtuu; sessio jatkuu keskeytyksettä. */
+  private buildView() {
+    this.view?.destroy();
+    this.view = new GameView(this.session.arena, this.pixi.renderer.resolution);
     this.view.roster = this.roster;
     this.view.onHitstop = (ms) => this.session.hitstop(ms);
     this.pixi.stage.addChildAt(this.view.root, 0);
     this.view.setViewport(this.pixi.screen.width, this.pixi.screen.height);
+  }
+
+  private cameraLabel = () => (orientation() === "horizontal" ? "Camera: sideways" : "Camera: end to end");
+
+  private toggleCamera() {
+    setOrientation(orientation() === "horizontal" ? "vertical" : "horizontal");
+    sfx.ui("move");
+    this.buildView();
+    this.lobbyKey = "";
+    this.renderScreen();
   }
 
   /** Taustalla pyörivä bottiottelu valikoiden takana. */
@@ -175,7 +191,7 @@ export class App {
   private renderScreen() {
     const s = this.screen;
     let html = "";
-    if (s === "title") html = titleHtml(this.menuItems(), this.menuIndex, isMuted());
+    if (s === "title") html = titleHtml(this.menuItems(), this.menuIndex, isMuted(), this.cameraLabel());
     if (s === "howto") html = howtoHtml();
     if (s === "lobby") html = this.lobbyMarkup();
     if (s === "results") html = resultsHtml(this.lastState?.score ?? [0, 0], [...this.stats.values()], this.resultActions(), this.overlayIndex);
@@ -196,6 +212,7 @@ export class App {
       joinUrl: this.joinUrl,
       qr: this.qr,
       joinable: connectedDevices().filter((d) => !players.some((p) => p.device === d.id && p.client === this.myClient())),
+      camera: this.cameraLabel(),
     });
   }
 
@@ -205,10 +222,12 @@ export class App {
     return this.lan
       ? [
           { id: "resume", label: "Keep playing" },
+          { id: "camera", label: this.cameraLabel() },
           { id: "leave", label: "Leave match" },
         ]
       : [
           { id: "resume", label: "Resume" },
+          { id: "camera", label: this.cameraLabel() },
           { id: "lobby", label: "Back to lobby" },
           { id: "title", label: "Quit to menu" },
         ];
@@ -328,6 +347,10 @@ export class App {
 
   private act(id: string) {
     sfx.ui("confirm");
+    if (id === "camera") {
+      this.toggleCamera();
+      return;
+    }
     if (id === "resume") {
       this.paused = false;
       this.session.paused = false;
@@ -341,6 +364,7 @@ export class App {
     const t = e.target as HTMLElement;
     const menu = t.closest<HTMLElement>("[data-menu]");
     const action = t.closest<HTMLElement>("[data-action]")?.dataset.action;
+    if (action === "camera") return this.toggleCamera();
     if (action === "mute") {
       toggleMute();
       this.renderScreen();
@@ -468,6 +492,7 @@ export class App {
 
   private tick(dt: number) {
     pollDevices();
+    if (globalKeys.c) this.toggleCamera();
     if (globalKeys.m) {
       toggleMute();
       if (this.screen === "title") this.renderScreen();
