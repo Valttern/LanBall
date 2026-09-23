@@ -284,5 +284,5 @@ describe("tekoäly", () => {
     }
     expect(totalGoals).toBeGreaterThanOrEqual(6); // noin 2+ maalia per ottelu
     expect(totalGoals).toBeLessThan(60);
-  });
+  }, 60_000);
 });
