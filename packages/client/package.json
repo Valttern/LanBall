@@ -1,0 +1,12 @@
+{
+  "name": "@lanball/client",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host"
+  },
+  "dependencies": {
+    "@lanball/sim": "*",
+    "pixi.js": "^8.21.0"
+  }
+}
