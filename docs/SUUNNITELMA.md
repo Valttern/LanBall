@@ -39,6 +39,7 @@ Merkinnät: **[G]** Valtterin päätös · **[E]** Clauden ehdotus, ei vielä ku
 | 28 | [E] | Pelin tekstit englanniksi (GOAL!, KICK OFF). Arcade-konventio, ja peliä voi näyttää kenelle tahansa. Tekstit on helppo vaihtaa. | 23.9.2026 |
 | 29 | [E] | Visuaalinen suunta "kattoareena auringonlaskussa": taivas koralli–magenta–luumu, kenttä luumuasfalttia keltaisin viivoin, kromilaidat ja joukkuevärein hehkuvat LED-nauhat. BLAZE (#FF5A36) vs FROST (#3CC8FF). Fontit Bungee (logo, tulostaulu, bannerit) ja Rubik (muu teksti). Hahmot chibi-tyylisiä: paita joukkueen väriä, pää ja hattu kertovat hahmon. Kaikki taide piirretään koodilla, äänet syntetisoidaan. | 23.9.2026 |
 | 30 | [E] | LAN-host: `npm run host` rakentaa pelin ja jakaa sen porttiin 8080. Aulassa näkyy kotiverkon osoite ja QR-koodi. Jos selain lakkaa lähettämästä syötteitä yli 0,5 s, sen hahmo pysähtyy. | 23.9.2026 |
+| 31 | [G] | GitHub: julkinen repo Valttern/LanBall, peli julkaistaan GitHub Pagesiin (https://valttern.github.io/LanBall/) jokaisen mainiin pushatun muutoksen jälkeen, kun testit menevät läpi. Pagesissa toimii peli samalla koneella; LAN vaatii hostin. Repo tunnistautuu Valttern-tilillä omalla git-asetuksellaan, koneen oletustili pysyy kalaherkut. | 23.9.2026 |
 
 ## Arkkitehtuuri
 
@@ -70,4 +71,3 @@ Merkinnät: **[G]** Valtterin päätös · **[E]** Clauden ehdotus, ei vielä ku
 - Tuntuma: säätöarvot (nopeudet, jousi, laukausvoimat, tekoälyn aggressiivisuus) vaativat oikeaa pelaamista ihmisillä.
 - Grafiikan tuotanto: nyt kaikki piirretään koodilla. Käsin piirretyt hahmot vaatisivat piirtäjän tai kuvageneraattorin.
 - Puhelin ohjaimena (päätös 15: myöhemmin).
-- GitHub-repo (päätös 12: vasta pyynnöstä).

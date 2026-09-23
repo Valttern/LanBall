@@ -6,6 +6,9 @@ jokainen omalla selaimellaan.
 
 ## Pelaaminen
 
+**Pelaa heti selaimessa:** https://valttern.github.io/LanBall/ (samalla koneella, näppäimistöt ja peliohjaimet).
+LAN-peli vaatii hostin, katso alta.
+
 **Samalla koneella** tai **LAN-juhlat**: yksi kone on host.
 
 ```bash
