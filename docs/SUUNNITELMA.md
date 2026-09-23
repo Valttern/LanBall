@@ -26,6 +26,7 @@ Merkinnät: **[G]** Valtterin päätös · **[E]** Clauden ehdotus, ei vielä ku
 | 15 | [G] | Ohjaimet MVP:ssä: näppäimistö (2 pelaajaa, WASD ja nuolet) ja peliohjaimet (selaimen Gamepad API, viimeistään S3). Liike + 3 nappia: syöttö, laukaus, taklaus. Hahmon vaihto automaattisesti ja syöttönapista, kun omalla hahmolla ei ole palloa. Puhelin ohjaimena (QR-koodi) myöhemmin, uutena syötelähteenä. | 23.9.2026 |
 | 16 | [G] | S1-näyte hyväksytty: mittasuhteet (areena n. 1400 × 760, hahmo Ø 52, maali 180) ja tuntuma oikeaan suuntaan. | 23.9.2026 |
 | 17 | [G] | Grafiikan suunta: Windjammersin, Speedball 2:n ja Tape to Tapen väliltä, näyttävä AAA-taso. Kuka tai mikä grafiikan tuottaa, on vielä auki. | 23.9.2026 |
+| 18 | [G] | Pallon hallinta: pallo tarttuu hahmoon, mutta ei ole liimattu. Pallo kulkee aina hahmon edessä, jousi vetää sen paikalleen. Irtoaa: jyrkkä käännös täydessä vauhdissa, vastustajan kosketus, kova seinäosuma, taklaus. Menettäjällä 0,4 s nappausviive. Kuljettaja 90 % nopeudella. Luvut säätöarvoja, testataan pelaamalla. | 23.9.2026 |
 
 ## Arkkitehtuuri
 
@@ -55,4 +56,3 @@ Merkinnät: **[G]** Valtterin päätös · **[E]** Clauden ehdotus, ei vielä ku
 ## Auki [A]
 
 - Grafiikan tuotanto: kuka tai mikä tekee hahmot ja areenat (AAA-tavoite, päätös 17)
-- Pallon hallinnan malli
