@@ -1,7 +1,7 @@
 import type { Body, Segment } from "./types.ts";
 
-/** Työntää ympyrän irti janasta ja kimmottaa nopeuden. */
-export function collideWall(body: Body, wall: Segment, restitution: number) {
+/** Työntää ympyrän irti janasta ja kimmottaa nopeuden. Palauttaa osumanopeuden (0 = ei osumaa). */
+export function collideWall(body: Body, wall: Segment, restitution: number): number {
   const { a, b } = wall;
   const abx = b.x - a.x;
   const aby = b.y - a.y;
@@ -11,7 +11,7 @@ export function collideWall(body: Body, wall: Segment, restitution: number) {
   const dx = body.pos.x - (a.x + abx * t);
   const dy = body.pos.y - (a.y + aby * t);
   const dist = Math.hypot(dx, dy);
-  if (dist >= body.radius || dist === 0) return;
+  if (dist >= body.radius || dist === 0) return 0;
 
   const nx = dx / dist;
   const ny = dy / dist;
@@ -22,15 +22,16 @@ export function collideWall(body: Body, wall: Segment, restitution: number) {
     body.vel.x -= (1 + restitution) * vn * nx;
     body.vel.y -= (1 + restitution) * vn * ny;
   }
+  return Math.max(0, -vn);
 }
 
-/** Kahden ympyrän törmäys massojen suhteessa. */
-export function collideBodies(p: Body, q: Body, restitution: number) {
+/** Kahden ympyrän törmäys massojen suhteessa. Palauttaa true, jos ympyrät koskettivat. */
+export function collideBodies(p: Body, q: Body, restitution: number): boolean {
   const dx = q.pos.x - p.pos.x;
   const dy = q.pos.y - p.pos.y;
   const dist = Math.hypot(dx, dy);
   const minDist = p.radius + q.radius;
-  if (dist >= minDist || dist === 0) return;
+  if (dist >= minDist || dist === 0) return false;
 
   const nx = dx / dist;
   const ny = dy / dist;
@@ -44,10 +45,11 @@ export function collideBodies(p: Body, q: Body, restitution: number) {
   q.pos.y += ny * share * invQ;
 
   const vn = (q.vel.x - p.vel.x) * nx + (q.vel.y - p.vel.y) * ny;
-  if (vn >= 0) return;
+  if (vn >= 0) return true;
   const j = (-(1 + restitution) * vn) / (invP + invQ);
   p.vel.x -= j * invP * nx;
   p.vel.y -= j * invP * ny;
   q.vel.x += j * invQ * nx;
   q.vel.y += j * invQ * ny;
+  return true;
 }

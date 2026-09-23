@@ -58,3 +58,83 @@ describe("step", () => {
     expect(s.ball.pos.x).toBeLessThan(arena.halfWidth);
   });
 });
+
+describe("pallon hallinta", () => {
+  const right: InputState = { ...NO_INPUT, moveX: 1 };
+  const left: InputState = { ...NO_INPUT, moveX: -1 };
+
+  /** Kenttä, jossa on vain pelaaja 0 ja halutut muut. */
+  function solo(...others: number[]) {
+    const s = createMatch(arena);
+    s.players = s.players.filter((p) => p.id === 0 || others.includes(p.id));
+    return s;
+  }
+
+  function carry(s: GameState, seconds: number, input: InputState) {
+    return run(s, Math.round(seconds * TICK_RATE), [input]);
+  }
+
+  it("hahmo nappaa pallon ja pallo kulkee sen edessä", () => {
+    const s = carry(solo(), 1.5, right);
+    const p = s.players[0];
+    expect(s.ball.owner).toBe(0);
+    expect(s.ball.pos.x).toBeGreaterThan(p.pos.x + p.radius);
+    expect(Math.abs(s.ball.pos.y - p.pos.y)).toBeLessThan(5);
+  });
+
+  it("pallo kulkee edessä myös kun hahmo kääntyy rauhallisesti", () => {
+    let s = carry(solo(), 1, right);
+    s = run(s, TICK_RATE); // pysähtyy
+    s = carry(s, 1, left);
+    const p = s.players[0];
+    expect(s.ball.owner).toBe(0);
+    expect(s.ball.pos.x).toBeLessThan(p.pos.x - p.radius);
+  });
+
+  it("jyrkkä käännös täydessä vauhdissa irrottaa pallon, joka jatkaa vanhaan suuntaan", () => {
+    let s = carry(solo(), 1.2, right);
+    expect(s.ball.owner).toBe(0);
+    const at = s.ball.pos.x;
+    s = carry(s, 0.1, left);
+    expect(s.ball.owner).toBeNull();
+    expect(s.ball.vel.x).toBeGreaterThan(0);
+    expect(s.ball.pos.x).toBeGreaterThan(at);
+  });
+
+  it("menettäjä ei voi napata palloa heti takaisin", () => {
+    let s = carry(solo(), 1.2, right);
+    s = carry(s, 0.05, left);
+    expect(s.ball.owner).toBeNull();
+    for (let i = 0; i < 0.3 * TICK_RATE; i++) {
+      s = step(s, [right], arena);
+      expect(s.ball.owner).not.toBe(0);
+    }
+  });
+
+  it("vastustajaan törmääminen irrottaa pallon", () => {
+    const s0 = solo(4); // vastustajan keskushyökkääjä (160, 0)
+    let owned = false;
+    let s = s0;
+    for (let i = 0; i < 2 * TICK_RATE; i++) {
+      s = step(s, [right], arena);
+      if (s.ball.owner === 0) owned = true;
+    }
+    expect(owned).toBe(true);
+    expect(s.ball.owner).not.toBe(0);
+  });
+
+  it("kova seinäosuma irrottaa pallon", () => {
+    let s = solo();
+    s.players[0].pos = { x: 300, y: -250 };
+    s.ball.pos = { x: 345, y: -250 };
+    let owned = false;
+    let lost = false;
+    for (let i = 0; i < 2 * TICK_RATE; i++) {
+      s = step(s, [right], arena);
+      if (s.ball.owner === 0) owned = true;
+      else if (owned) lost = true;
+    }
+    expect(owned).toBe(true);
+    expect(lost).toBe(true);
+  });
+});

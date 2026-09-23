@@ -28,9 +28,12 @@ export interface Player extends Body {
   role: Role;
   facing: Vec;
   home: Vec; // aloituspaikka
+  noGrabUntil: number; // tick, ennen jota pelaaja ei voi napata palloa
 }
 
-export type Ball = Body;
+export interface Ball extends Body {
+  owner: number | null; // pallon haltijan id
+}
 
 export interface GameState {
   tick: number;

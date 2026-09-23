@@ -103,6 +103,7 @@ export class GameView {
   root = new Container();
   private players: PlayerView[];
   private ball = new Graphics();
+  private ballRing = new Graphics();
   private score = new Text({
     text: "0 – 0",
     style: { fontFamily: "system-ui, sans-serif", fontSize: 56, fontWeight: "900", fill: 0xffffff, stroke: { color: 0x1a1a2e, width: 8 } },
@@ -121,7 +122,7 @@ export class GameView {
       .stroke({ width: 3, color: 0x1a1a2e })
       .circle(-r * 0.3, -r * 0.3, r * 0.3)
       .fill(0x1a1a2e);
-    this.root.addChild(this.ball);
+    this.root.addChild(this.ballRing, this.ball);
     this.score.anchor.set(0.5, 0.5);
     this.score.position.set(0, -arena.halfHeight - 70);
     this.root.addChild(this.score);
@@ -136,6 +137,13 @@ export class GameView {
     });
     const b = at(prev.ball.pos, curr.ball.pos);
     this.ball.position.set(b.x, b.y);
+    // Pallon haltijan joukkueen värinen rengas: aina selvää, kenellä pallo on.
+    const owner = curr.players.find((p) => p.id === curr.ball.owner);
+    this.ballRing.clear();
+    if (owner) {
+      this.ballRing.circle(0, 0, curr.ball.radius + 7).stroke({ width: 4, color: COLORS.team[owner.team] });
+      this.ballRing.position.set(b.x, b.y);
+    }
     this.score.text = `${curr.score[0]} – ${curr.score[1]}`;
   }
 }

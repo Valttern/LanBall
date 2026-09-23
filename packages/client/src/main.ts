@@ -27,6 +27,26 @@ function fit() {
 fit();
 app.renderer.on("resize", fit);
 
+// Kehitystilassa tila näkyy konsolista ja selaintesteistä. `advance` ajaa simulaatiota ohjatulla syötteellä
+// ilman ruudunpäivitystä (piilotettu välilehti ei päivity).
+if (import.meta.env.DEV)
+  (window as any).__lanball = {
+    get state() {
+      return curr;
+    },
+    advance(ticks: number, input: Partial<InputState> = {}) {
+      for (let i = 0; i < ticks; i++) {
+        const inputs: InputState[] = [];
+        inputs[controlledId] = { ...readKeyboard(KEYMAP_P1), ...input };
+        prev = curr;
+        curr = step(curr, inputs, arena);
+      }
+      view.render(prev, curr, 1, controlledId);
+      app.render();
+      return curr;
+    },
+  };
+
 // Kiinteä 60 Hz simulaatio, piirto interpoloi tickien välistä.
 let acc = 0;
 let last = performance.now();

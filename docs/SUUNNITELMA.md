@@ -27,6 +27,7 @@ Merkinnät: **[G]** Valtterin päätös · **[E]** Clauden ehdotus, ei vielä ku
 | 16 | [G] | S1-näyte hyväksytty: mittasuhteet (areena n. 1400 × 760, hahmo Ø 52, maali 180) ja tuntuma oikeaan suuntaan. | 23.9.2026 |
 | 17 | [G] | Grafiikan suunta: Windjammersin, Speedball 2:n ja Tape to Tapen väliltä, näyttävä AAA-taso. Kuka tai mikä grafiikan tuottaa, on vielä auki. | 23.9.2026 |
 | 18 | [G] | Pallon hallinta: pallo tarttuu hahmoon, mutta ei ole liimattu. Pallo kulkee aina hahmon edessä, jousi vetää sen paikalleen. Irtoaa: jyrkkä käännös täydessä vauhdissa, vastustajan kosketus, kova seinäosuma, taklaus. Menettäjällä 0,4 s nappausviive. Kuljettaja 90 % nopeudella. Luvut säätöarvoja, testataan pelaamalla. | 23.9.2026 |
+| 19 | [E] | Pallon kanssa hahmo liikkuu katseensa suuntaan ja kääntyy hitaammin (7 vs 10 rad/s). Mitä jyrkempi käännös, sitä enemmän se hidastaa: 180° käännös tehdään lähes paikallaan. Syy: muuten pallo jää jälkeen ja irtoaa rauhallisessakin käännöksessä. | 23.9.2026 |
 
 ## Arkkitehtuuri
 
