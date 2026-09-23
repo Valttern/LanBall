@@ -24,6 +24,7 @@ export interface Peer {
 
 const SNAPSHOT_EVERY = 2; // 30 Hz tilakuvat, asiakkaat interpoloivat (päätös 4)
 const MAX_QUEUE = 4;
+const STALE_TICKS = 30; // jos syötettä ei tule puoleen sekuntiin (esim. välilehti taustalla), hahmo pysähtyy
 
 /**
  * Yksi LAN-huone: aula ja käynnissä oleva ottelu. Simulaatio pyörii täällä, selaimet lähettävät vain syötteet.
@@ -36,6 +37,7 @@ export class Room {
   private arena: Arena = buildArena(DEFAULT_ARENA);
   private queues = new Map<number, InputState[]>();
   private last = new Map<number, InputState>();
+  private lastFresh = new Map<number, number>();
   private events: GameEvent[] = [];
   private startTimer: ReturnType<typeof setInterval> | null = null;
   private loop: ReturnType<typeof setInterval> | null = null;
@@ -136,6 +138,7 @@ export class Room {
     this.state = createMatch(this.arena, setup);
     this.queues.clear();
     this.last.clear();
+    this.lastFresh.clear();
     this.events = [];
     this.ending = false;
     const roster = this.lobby.players.map((p) => ({ slot: p.slot, name: p.name, client: p.client }));
@@ -161,7 +164,10 @@ export class Room {
     const inputs: InputState[] = [];
     for (const slot of this.state.slots) {
       const q = this.queues.get(slot.slot);
-      const next = q?.shift() ?? this.last.get(slot.slot) ?? NO_INPUT;
+      const fresh = q?.shift();
+      if (fresh) this.lastFresh.set(slot.slot, this.state.tick);
+      const stale = this.state.tick - (this.lastFresh.get(slot.slot) ?? this.state.tick) > STALE_TICKS;
+      const next = fresh ?? (stale ? NO_INPUT : (this.last.get(slot.slot) ?? NO_INPUT));
       this.last.set(slot.slot, next);
       inputs[slot.slot] = next;
     }

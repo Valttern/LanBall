@@ -66,3 +66,24 @@ describe("LAN-huone", () => {
     room.stopMatch();
   });
 });
+
+describe("LAN-huoneen syötteet", () => {
+  beforeEach(() => vi.useFakeTimers());
+  afterEach(() => vi.useRealTimers());
+
+  it("jos selain lakkaa lähettämästä syötteitä, hahmo pysähtyy puolen sekunnin päästä", () => {
+    const room = new Room([]);
+    room.connect(peer("a"));
+    room.handle("a", { t: "join", device: "kb1" });
+    room.startMatch();
+    room.state!.phase = "play";
+    const slot = room.lobby.players[0].slot;
+    room.state!.slots[0].locked = true; // ei automaattista hahmon vaihtoa kesken testin
+    const id = room.state!.slots[0].playerId;
+    room.handle("a", { t: "input", frames: { [slot]: [{ ...NO_INPUT, moveX: -1 }] } });
+    for (let i = 0; i < 60; i++) room.tick(); // 30 tickiä vanhaa syötettä, sitten pysähdys
+    const me = room.state!.players.find((p) => p.id === id)!;
+    expect(Math.hypot(me.vel.x, me.vel.y)).toBeLessThan(60); // ilman pysäytystä n. 300
+    room.stopMatch();
+  });
+});

@@ -20,11 +20,15 @@ const TYPES: Record<string, string> = {
   ".json": "application/json",
 };
 
+/** Kotiverkon osoitteet ensin; link-local (169.254) ei toimi kavereille, joten se jätetään pois. */
 function lanUrls(): string[] {
-  const urls: string[] = [];
+  const rank = (ip: string) =>
+    /^192\.168\./.test(ip) ? 0 : /^10\./.test(ip) ? 1 : /^172\.(1[6-9]|2\d|3[01])\./.test(ip) ? 2 : 3;
+  const ips: string[] = [];
   for (const list of Object.values(networkInterfaces()))
-    for (const a of list ?? []) if (a.family === "IPv4" && !a.internal) urls.push(`http://${a.address}:${PORT}`);
-  return urls.length ? urls : [`http://localhost:${PORT}`];
+    for (const a of list ?? []) if (a.family === "IPv4" && !a.internal && !a.address.startsWith("169.254.")) ips.push(a.address);
+  ips.sort((a, b) => rank(a) - rank(b));
+  return ips.length ? ips.map((ip) => `http://${ip}:${PORT}`) : [`http://localhost:${PORT}`];
 }
 
 const urls = lanUrls();

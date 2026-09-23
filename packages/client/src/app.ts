@@ -267,7 +267,8 @@ export class App {
         this.leaveToTitle();
         return;
       }
-      if (this.screen === "match") this.showResults();
+      // Loppuvihellys ja FULL TIME ehtivät näkyä ennen tuloksia.
+      if (this.screen === "match") setTimeout(() => this.screen === "match" && this.showResults(), 3000);
     }
   }
 
