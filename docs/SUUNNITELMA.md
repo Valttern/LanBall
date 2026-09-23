@@ -37,6 +37,8 @@ Merkinnät: **[G]** Valtterin päätös · **[E]** Clauden ehdotus, ei vielä ku
 | 26 | [E] | Hahmot (6 kpl): BRICK (tankki), ZIP (nopea), BOOMER (kova laukaus), NOODLE (kaartuvat laukaukset), SPROCKET (pitkä taklaus), DUCKY (powerupit kestävät pidempään). Maalivahti on oma hahmonsa. | 23.9.2026 |
 | 27 | [E] | Powerupit (6 kpl): TURBO, GIANT (iso ja jyrää), MAGNET (vetää palloa), FIREBALL (seuraava laukaus lävistää ja kaataa pelaajat), FREEZE (vastustajat jäätyvät 2 s), BANANAS (3 banaanin kuorta, vastustaja liukastuu). | 23.9.2026 |
 | 28 | [E] | Pelin tekstit englanniksi (GOAL!, KICK OFF). Arcade-konventio, ja peliä voi näyttää kenelle tahansa. Tekstit on helppo vaihtaa. | 23.9.2026 |
+| 29 | [E] | Visuaalinen suunta "kattoareena auringonlaskussa": taivas koralli–magenta–luumu, kenttä luumuasfalttia keltaisin viivoin, kromilaidat ja joukkuevärein hehkuvat LED-nauhat. BLAZE (#FF5A36) vs FROST (#3CC8FF). Fontit Bungee (logo, tulostaulu, bannerit) ja Rubik (muu teksti). Hahmot chibi-tyylisiä: paita joukkueen väriä, pää ja hattu kertovat hahmon. Kaikki taide piirretään koodilla, äänet syntetisoidaan. | 23.9.2026 |
+| 30 | [E] | LAN-host: `npm run host` rakentaa pelin ja jakaa sen porttiin 8080. Aulassa näkyy kotiverkon osoite ja QR-koodi. Jos selain lakkaa lähettämästä syötteitä yli 0,5 s, sen hahmo pysähtyy. | 23.9.2026 |
 
 ## Arkkitehtuuri
 
@@ -55,14 +57,17 @@ Merkinnät: **[G]** Valtterin päätös · **[E]** Clauden ehdotus, ei vielä ku
 
 ## Siivut
 
-| Siivu | Sisältö | Mitä sillä selvitetään |
+| Siivu | Sisältö | Tila 23.9.2026 |
 |---|---|---|
-| S1 | Kenttä, pallo, 2 pelaajaa samalla näppäimistöllä, 2 joukkuetta tekoälykavereineen: liike, hahmon vaihto, syöttö, laukaus, taklaus, maali | Onko peli hauska jo ilman mitään lisuketta? |
-| S2 | Sama peli LANissa: host + yksi asiakas | Toimiiko verkkoarkkitehtuuri? |
-| S3 | Useampi pelaaja per joukkue (lukittu omaan hahmoon), peliohjaimet, aula ennen peliä | Toimiiko se partypelinä? |
-| S4 | Hahmot ja powerupit | Syntyykö hullunkurisuus? |
-| S5 | Viimeistely: äänet, efektit, ruudun tärinä | Tuntuuko peli hyvältä pelata? |
+| S1 | Kenttä, pallo, liike, syöttö, laukaus, taklaus, hahmon vaihto, tekoäly | Valmis. Testattu yksikkötesteillä ja selaimessa. |
+| S2 | LAN: host + asiakkaat | Valmis. Testattu huonetesteillä ja kahdella selainvälilehdellä oikeaa palvelinta vasten. |
+| S3 | Useampi pelaaja per joukkue, peliohjaimet, aula | Valmis. Peliohjain testattu simuloidulla Gamepad API:lla, ei fyysisellä ohjaimella. |
+| S4 | Hahmot ja powerupit | Valmis: 6 hahmoa, 6 powerupia. |
+| S5 | Viimeistely: grafiikka, efektit, äänet | Valmis ensimmäisenä versiona. Äänet tarkistettu vain virheettömyyden osalta, ei korvalla. |
 
 ## Auki [A]
 
-- Grafiikan tuotanto: kuka tai mikä tekee hahmot ja areenat (AAA-tavoite, päätös 17)
+- Tuntuma: säätöarvot (nopeudet, jousi, laukausvoimat, tekoälyn aggressiivisuus) vaativat oikeaa pelaamista ihmisillä.
+- Grafiikan tuotanto: nyt kaikki piirretään koodilla. Käsin piirretyt hahmot vaatisivat piirtäjän tai kuvageneraattorin.
+- Puhelin ohjaimena (päätös 15: myöhemmin).
+- GitHub-repo (päätös 12: vasta pyynnöstä).
