@@ -28,6 +28,15 @@ Merkinnät: **[G]** Valtterin päätös · **[E]** Clauden ehdotus, ei vielä ku
 | 17 | [G] | Grafiikan suunta: Windjammersin, Speedball 2:n ja Tape to Tapen väliltä, näyttävä AAA-taso. Kuka tai mikä grafiikan tuottaa, on vielä auki. | 23.9.2026 |
 | 18 | [G] | Pallon hallinta: pallo tarttuu hahmoon, mutta ei ole liimattu. Pallo kulkee aina hahmon edessä, jousi vetää sen paikalleen. Irtoaa: jyrkkä käännös täydessä vauhdissa, vastustajan kosketus, kova seinäosuma, taklaus. Menettäjällä 0,4 s nappausviive. Kuljettaja 90 % nopeudella. Luvut säätöarvoja, testataan pelaamalla. | 23.9.2026 |
 | 19 | [E] | Pallon kanssa hahmo liikkuu katseensa suuntaan ja kääntyy hitaammin (7 vs 10 rad/s). Mitä jyrkempi käännös, sitä enemmän se hidastaa: 180° käännös tehdään lähes paikallaan. Syy: muuten pallo jää jälkeen ja irtoaa rauhallisessakin käännöksessä. | 23.9.2026 |
+| 20 | [G] | Valtteri 23.9.: "hoida loppuun kyselemättä, AAA-laatu". Toteutan S1–S5 ilman välikysymyksiä ja kirjaan omat valinnat [E]-merkinnällä. Julkaisu, GitHub ja CLAUDE.md-muutokset kysytään silti. | 23.9.2026 |
+| 21 | [E] | Syöttö: tähtäysapu. Pallo menee joukkuekaverille, joka on lähimpänä katseen suuntaa (±55°), voima etäisyyden mukaan. Aiottu vastaanottaja saa syötön aina haltuun, ja ohjaus siirtyy hänelle jo pallon ollessa matkalla. | 23.9.2026 |
+| 22 | [E] | Laukaus: nappia pidetään pohjassa latauksen ajan (0,75 s), irrotus laukaisee. Jos katse osoittaa maalia kohti (±28°), tähtäys korjataan maalin sisään. Vapaaseen palloon voi laukaista suoraan (volley). Kova laukaus kimpoaa kenttäpelaajasta, maalivahti voi napata. | 23.9.2026 |
+| 23 | [E] | Taklausnappi: ilman palloa liukutaklaus, joka kaataa vastustajan. Pallon kanssa lyhyt spurtti. | 23.9.2026 |
+| 24 | [E] | Päätöksen 18 tarkennus: pallo irtoaa, kun vastustaja koskee itse palloon tai törmää kuljettajaan kovaa (yli 200 u/s). Pelkkä hipaisu ei riitä. Syy: muuten pallo vaihtoi omistajaa yli 300 kertaa ottelussa ja peli oli flipperiä. Maalivahdin käsissä olevaa palloa ei voi tönäistä irti. | 23.9.2026 |
+| 25 | [E] | Ottelun kulku: 3 s alkulaskenta, 2:30 peliaikaa, maalin jälkeen 2,6 s juhlinta ja aloitus keskeltä päästäneelle joukkueelle. Tasatilanteessa kultainen maali. | 23.9.2026 |
+| 26 | [E] | Hahmot (6 kpl): BRICK (tankki), ZIP (nopea), BOOMER (kova laukaus), NOODLE (kaartuvat laukaukset), SPROCKET (pitkä taklaus), DUCKY (powerupit kestävät pidempään). Maalivahti on oma hahmonsa. | 23.9.2026 |
+| 27 | [E] | Powerupit (6 kpl): TURBO, GIANT (iso ja jyrää), MAGNET (vetää palloa), FIREBALL (seuraava laukaus lävistää ja kaataa pelaajat), FREEZE (vastustajat jäätyvät 2 s), BANANAS (3 banaanin kuorta, vastustaja liukastuu). | 23.9.2026 |
+| 28 | [E] | Pelin tekstit englanniksi (GOAL!, KICK OFF). Arcade-konventio, ja peliä voi näyttää kenelle tahansa. Tekstit on helppo vaihtaa. | 23.9.2026 |
 
 ## Arkkitehtuuri
 

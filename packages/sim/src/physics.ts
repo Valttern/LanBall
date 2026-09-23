@@ -25,13 +25,13 @@ export function collideWall(body: Body, wall: Segment, restitution: number): num
   return Math.max(0, -vn);
 }
 
-/** Kahden ympyrän törmäys massojen suhteessa. Palauttaa true, jos ympyrät koskettivat. */
-export function collideBodies(p: Body, q: Body, restitution: number): boolean {
+/** Kahden ympyrän törmäys massojen suhteessa. Palauttaa lähestymisnopeuden, tai -1 jos ympyrät eivät koskettaneet. */
+export function collideBodies(p: Body, q: Body, restitution: number): number {
   const dx = q.pos.x - p.pos.x;
   const dy = q.pos.y - p.pos.y;
   const dist = Math.hypot(dx, dy);
   const minDist = p.radius + q.radius;
-  if (dist >= minDist || dist === 0) return false;
+  if (dist >= minDist || dist === 0) return -1;
 
   const nx = dx / dist;
   const ny = dy / dist;
@@ -45,11 +45,11 @@ export function collideBodies(p: Body, q: Body, restitution: number): boolean {
   q.pos.y += ny * share * invQ;
 
   const vn = (q.vel.x - p.vel.x) * nx + (q.vel.y - p.vel.y) * ny;
-  if (vn >= 0) return true;
+  if (vn >= 0) return 0;
   const j = (-(1 + restitution) * vn) / (invP + invQ);
   p.vel.x -= j * invP * nx;
   p.vel.y -= j * invP * ny;
   q.vel.x += j * invQ * nx;
   q.vel.y += j * invQ * ny;
-  return true;
+  return -vn;
 }

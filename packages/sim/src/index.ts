@@ -1,3 +1,10 @@
 export * from "./types.ts";
+export * from "./tuning.ts";
 export * from "./arena.ts";
-export * from "./step.ts";
+export * from "./input.ts";
+export * from "./characters.ts";
+export { createMatch } from "./match.ts";
+export { step } from "./step.ts";
+export { dribblePoint, attackX } from "./ball.ts";
+export { hasEffect, byId } from "./players.ts";
+export { PICKUPS } from "./powerups.ts";
