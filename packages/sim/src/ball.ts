@@ -1,6 +1,6 @@
 import { character } from "./characters.ts";
 import { byId, canAct, hasEffect } from "./players.ts";
-import { DT, TUNING, secs } from "./tuning.ts";
+import { AI_LEVELS, DT, TUNING, secs } from "./tuning.ts";
 import type { Arena, Ball, GameState, Player, Team, Vec } from "./types.ts";
 
 /** Vastustajan maalin x-koordinaatti: joukkue 0 hyökkää oikealle. */
@@ -83,7 +83,7 @@ export function tryGrab(state: GameState) {
   let bestDist = Infinity;
   for (const p of state.players) {
     if (!canGrab(state, p)) continue;
-    const reach = TUNING.grabReach + (p.role === "keeper" ? TUNING.ai.keeperReach : 0);
+    const reach = TUNING.grabReach + (p.role === "keeper" ? AI_LEVELS[state.difficulty].keeperReach : 0);
     const d = Math.hypot(ball.pos.x - p.pos.x, ball.pos.y - p.pos.y) - p.radius - ball.radius;
     if (d < reach && d < bestDist) {
       best = p;

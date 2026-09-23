@@ -1,6 +1,61 @@
 export const TICK_RATE = 60;
 export const DT = 1 / TICK_RATE;
 export const secs = (s: number) => Math.round(s * TICK_RATE);
+
+export type Difficulty = "easy" | "normal" | "hard";
+
+/** Tekoälyn taso (päätökset 35–36). Normal on hieman heikennetty, Hard suunnilleen alkuperäinen. */
+export interface AiSkill {
+  tackleRange: number; // kuinka läheltä liukutaklaus yritetään (rako hahmojen välissä)
+  tackleChance: number; // todennäköisyys per harkinta, kun kuljettaja on kantamalla
+  tackleFacing: number; // taklataan vain, kun katse osoittaa kuljettajaa näin suoraan (cos)
+  tackleRest: readonly [number, number]; // tauko taklausyrityksen jälkeen (s)
+  chaseSpeed: number; // pallon jahtaamisen vauhti
+  aimError: number; // laukauksen hajonta maalin puolikkaan leveydestä
+  think: readonly [number, number]; // syöttöpäätösten väli (s)
+  keeperReach: number; // maalivahdin lisäulottuvuus nappaamiseen
+  keeperDiveTime: number; // kuinka myöhään maalivahti vielä syöksyy (s)
+  keeperSpeed: number; // maalivahdin nopeuskerroin
+}
+
+export const AI_LEVELS: Record<Difficulty, AiSkill> = {
+  easy: {
+    tackleRange: 45,
+    tackleChance: 0.08,
+    tackleFacing: 0.92,
+    tackleRest: [2.4, 3.6],
+    chaseSpeed: 0.78,
+    aimError: 0.85,
+    think: [0.9, 1.4],
+    keeperReach: 0,
+    keeperDiveTime: 0.2,
+    keeperSpeed: 0.9,
+  },
+  normal: {
+    tackleRange: 60,
+    tackleChance: 0.18,
+    tackleFacing: 0.85,
+    tackleRest: [1.6, 2.6],
+    chaseSpeed: 0.88,
+    aimError: 0.55,
+    think: [0.6, 1.0],
+    keeperReach: 4,
+    keeperDiveTime: 0.28,
+    keeperSpeed: 1,
+  },
+  hard: {
+    tackleRange: 62,
+    tackleChance: 0.35,
+    tackleFacing: 0.75,
+    tackleRest: [1.2, 2.2],
+    chaseSpeed: 1,
+    aimError: 0.2,
+    think: [0.4, 0.7],
+    keeperReach: 10,
+    keeperDiveTime: 0.35,
+    keeperSpeed: 1.07,
+  },
+};
 const deg = (d: number) => (d * Math.PI) / 180;
 
 /** Kaikki pelituntuman säätöarvot yhdessä paikassa. */
@@ -88,19 +143,6 @@ export const TUNING = {
   bananaCount: 3,
   bananaLife: 20,
   slipTime: 1.1,
-
-  // Tekoälyn taso (päätös 35): yksi paikka, josta vaikeutta säädetään.
-  ai: {
-    tackleRange: 60, // kuinka läheltä liukutaklaus yritetään (rako hahmojen välissä)
-    tackleChance: 0.18, // todennäköisyys per harkinta, kun kuljettaja on kantamalla
-    tackleFacing: 0.85, // taklataan vain, kun katse osoittaa kuljettajaa melko suoraan
-    tackleRest: [1.6, 2.6] as const, // tauko taklausyrityksen jälkeen (s)
-    chaseSpeed: 0.88, // pallon jahtaaminen ei täysillä
-    aimError: 0.55, // laukauksen hajonta maalin puolikkaan leveydestä
-    think: [0.6, 1.0] as const, // syöttöpäätösten väli (s)
-    keeperReach: 4, // maalivahdin lisäulottuvuus nappaamiseen
-    keeperDiveTime: 0.28, // kuinka myöhään maalivahti vielä syöksyy (s)
-  },
 
   // Ohjauksen vaihto (päätös 10 ja 15)
   autoSwitchMargin: 110,

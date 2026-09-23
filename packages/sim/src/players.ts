@@ -1,6 +1,6 @@
 import { releaseBall } from "./ball.ts";
 import { character } from "./characters.ts";
-import { DT, TUNING, secs } from "./tuning.ts";
+import { AI_LEVELS, DT, TUNING, secs } from "./tuning.ts";
 import type { EffectKind, GameState, InputState, Player } from "./types.ts";
 
 export const hasEffect = (p: Player, kind: EffectKind) => p.effects.some((e) => e.kind === kind);
@@ -18,7 +18,8 @@ export function applyStats(p: Player) {
 
 export function maxSpeed(state: GameState, p: Player): number {
   const c = character(p.character);
-  let s = (p.role === "keeper" ? TUNING.keeperSpeed : TUNING.playerMaxSpeed) * c.speed;
+  // Maalivahti on aina tekoäly, joten sen nopeus seuraa vaikeustasoa.
+  let s = (p.role === "keeper" ? TUNING.keeperSpeed * AI_LEVELS[state.difficulty].keeperSpeed : TUNING.playerMaxSpeed) * c.speed;
   if (hasEffect(p, "turbo")) s *= TUNING.turboSpeed;
   if (hasEffect(p, "giant")) s *= 0.92;
   if (state.ball.owner === p.id) s *= TUNING.carrierSpeedFactor;

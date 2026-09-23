@@ -66,6 +66,7 @@ export function createMatch(arena: Arena, setup: MatchSetup = { humans: [] }): G
     nextId: 1,
     rng: (setup.seed ?? 12345) | 0,
     powerups: setup.powerups ?? true,
+    difficulty: setup.difficulty ?? "normal",
     events: [],
   };
 

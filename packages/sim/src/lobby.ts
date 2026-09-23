@@ -1,4 +1,5 @@
 import { CHARACTERS } from "./characters.ts";
+import type { Difficulty } from "./tuning.ts";
 import type { ArenaDef, GameEvent, GameState, InputState, MatchSetup, Team } from "./types.ts";
 
 /** Pelaajan tunnusvärit (rengas jalkojen alla ja nimilappu). */
@@ -19,6 +20,7 @@ export interface LobbyPlayer {
 export interface LobbySettings {
   matchSeconds: number;
   powerups: boolean;
+  difficulty: Difficulty;
 }
 
 export interface LobbyState {
@@ -27,7 +29,7 @@ export interface LobbyState {
   startsIn: number | null; // sekunteja aloitukseen, kun kaikki ovat valmiita
 }
 
-export const newLobby = (): LobbyState => ({ players: [], settings: { matchSeconds: 150, powerups: true }, startsIn: null });
+export const newLobby = (): LobbyState => ({ players: [], settings: { matchSeconds: 150, powerups: true, difficulty: "normal" }, startsIn: null });
 
 export function joinLobby(lobby: LobbyState, client: string, device: string): LobbyPlayer | null {
   if (lobby.players.length >= MAX_PLAYERS) return null;
@@ -84,6 +86,7 @@ export function setupFromLobby(lobby: LobbyState, seed: number): MatchSetup {
     seed,
     matchSeconds: lobby.settings.matchSeconds,
     powerups: lobby.settings.powerups,
+    difficulty: lobby.settings.difficulty,
   };
 }
 

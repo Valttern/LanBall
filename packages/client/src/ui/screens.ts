@@ -125,6 +125,7 @@ export function lobbyHtml(opts: {
       <div class="settings">
         <button data-action="length">Match length<b>${Math.floor(secs / 60)}:${String(secs % 60).padStart(2, "0")}</b></button>
         <button data-action="powerups">Power-ups<b>${lobby.settings.powerups ? "On" : "Off"}</b></button>
+        <button data-action="difficulty">Bots<b>${{ easy: "Easy", normal: "Normal", hard: "Hard" }[lobby.settings.difficulty]}</b></button>
         <button data-action="camera">${esc(opts.camera)} <kbd>C</kbd></button>
         <button class="back" data-action="back">Back to menu <kbd>Esc</kbd></button>
       </div>

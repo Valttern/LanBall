@@ -378,6 +378,10 @@ export class App {
     if (action === "back") return this.leaveToTitle();
     if (action === "length") return this.changeSettings({ matchSeconds: LENGTHS[(LENGTHS.indexOf(this.lobby.settings.matchSeconds) + 1) % LENGTHS.length] });
     if (action === "powerups") return this.changeSettings({ powerups: !this.lobby.settings.powerups });
+    if (action === "difficulty") {
+      const levels = ["easy", "normal", "hard"] as const;
+      return this.changeSettings({ difficulty: levels[(levels.indexOf(this.lobby.settings.difficulty) + 1) % levels.length] });
+    }
     if (!menu) return;
     const i = Number(menu.dataset.menu);
     if (this.screen === "title") void this.choose(MENU[i].id);

@@ -44,6 +44,7 @@ Merkinnät: **[G]** Valtterin päätös · **[E]** Clauden ehdotus, ei vielä ku
 | 33 | [G] | Näyte hyväksytty. Lisäksi kameran suunnan voi vaihtaa: vaaka (maalit vasemmalla ja oikealla) tai pysty (maalit ylhäällä ja alhaalla). Ohjaus on aina ruudun suuntainen. Valinta tallentuu selaimeen, LAN:ssa jokainen valitsee omansa. | 23.9.2026 |
 | 34 | [E] | Isompaan kenttään sovitetut nopeudet: pelaajat +10 %, laukaukset ja syötöt noin +10 %, pallo liukuu pidemmälle. | 23.9.2026 |
 | 35 | [G] | Tekoäly on hieman liian hyvä → heikennetään maltillisesti. Säätöarvot kootaan `TUNING.ai`:hin: taklaukset harvemmin, lyhyemmältä ja vain suoraan edestä, jahtaaminen 88 % nopeudella, laukauksiin hajontaa, harkinta hitaampi, maalivahti hitaampi ja lyhyempi ulottuvuus. Bottiotteluissa (6 kpl) taklaukset 49 → 28,5 ja kaadot 42 → 22 per ottelu, maalit 4,2 → 5,8. Tuntuma pitää vielä varmistaa pelaamalla. | 23.9.2026 |
+| 36 | [G] | Vaikeustaso aulaan: Bots Easy / Normal / Hard (`AI_LEVELS`). Normal = päätöksen 35 taso, Hard ≈ alkuperäinen, Easy selvästi heikompi. Taso kulkee ottelun tilassa, joten LAN:ssa kaikilla on sama. Bottiotteluissa kaatoja per ottelu: Easy 8,5, Normal 22, Hard 41. | 23.9.2026 |
 
 ## Arkkitehtuuri
 

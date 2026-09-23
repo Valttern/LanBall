@@ -1,4 +1,5 @@
 import {
+  AI_LEVELS,
   allReady,
   buildArena,
   createMatch,
@@ -83,9 +84,14 @@ export class Room {
       case "ready":
         if (own(msg.slot)) setReady(this.lobby, msg.slot, msg.ready);
         break;
-      case "settings":
-        Object.assign(this.lobby.settings, msg.settings);
+      case "settings": {
+        // Vain tunnetut arvot: selaimen lähettämä roska ei saa kaataa hostia.
+        const s = msg.settings;
+        if (typeof s.matchSeconds === "number" && s.matchSeconds >= 30 && s.matchSeconds <= 600) this.lobby.settings.matchSeconds = s.matchSeconds;
+        if (typeof s.powerups === "boolean") this.lobby.settings.powerups = s.powerups;
+        if (s.difficulty && s.difficulty in AI_LEVELS) this.lobby.settings.difficulty = s.difficulty;
         break;
+      }
       case "input":
         for (const [slotStr, frames] of Object.entries(msg.frames)) {
           const slot = Number(slotStr);

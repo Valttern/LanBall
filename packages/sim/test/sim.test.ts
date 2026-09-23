@@ -286,3 +286,22 @@ describe("tekoäly", () => {
     expect(totalGoals).toBeLessThan(60);
   }, 60_000);
 });
+
+describe("vaikeustaso", () => {
+  it("Hard-botit taklaavat selvästi enemmän kuin Easy-botit", () => {
+    const knocks = (difficulty: "easy" | "hard") => {
+      let n = 0;
+      for (const seed of [1, 2]) {
+        let s = createMatch(arena, { humans: [], seed, countdownSeconds: 0, matchSeconds: 90, difficulty });
+        for (let i = 0; i < secs(90) && s.phase !== "ended"; i++) {
+          s = step(s, [], arena);
+          for (const e of s.events) if (e.type === "knock" && e.by !== null) n++;
+        }
+      }
+      return n;
+    };
+    const easy = knocks("easy");
+    const hard = knocks("hard");
+    expect(hard).toBeGreaterThan(easy * 2);
+  }, 60_000);
+});

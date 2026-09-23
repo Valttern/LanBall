@@ -126,6 +126,7 @@ export interface GameState {
   nextId: number;
   rng: number;
   powerups: boolean;
+  difficulty: "easy" | "normal" | "hard"; // tekoälyn taso
   events: GameEvent[]; // tämän tickin tapahtumat efekteille ja äänille
 }
 
@@ -161,4 +162,5 @@ export interface MatchSetup {
   matchSeconds?: number;
   countdownSeconds?: number;
   powerups?: boolean;
+  difficulty?: "easy" | "normal" | "hard";
 }
