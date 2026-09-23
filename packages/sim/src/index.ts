@@ -8,3 +8,4 @@ export { step } from "./step.ts";
 export { dribblePoint, attackX } from "./ball.ts";
 export { hasEffect, byId } from "./players.ts";
 export { PICKUPS } from "./powerups.ts";
+export * from "./lobby.ts";

@@ -1,0 +1,12 @@
+{
+  "name": "@lanball/server",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node src/index.ts"
+  },
+  "dependencies": {
+    "@lanball/sim": "*",
+    "ws": "^8.21.3"
+  }
+}

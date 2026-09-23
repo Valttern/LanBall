@@ -6,7 +6,11 @@
     "dev": "vite --host"
   },
   "dependencies": {
+    "@fontsource/bungee": "^5.3.0",
+    "@fontsource/rubik": "^5.3.0",
     "@lanball/sim": "*",
-    "pixi.js": "^8.21.0"
+    "pixi-filters": "^6.1.5",
+    "pixi.js": "^8.21.0",
+    "qrcode": "^1.5.4"
   }
 }
