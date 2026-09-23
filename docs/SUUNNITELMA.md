@@ -23,6 +23,7 @@ Merkinnät: **[G]** Valtterin päätös · **[E]** Clauden ehdotus, ei vielä ku
 | 12 | [G] | Git: `main` paikallisesti, commit valmiin päätöksen tai siivun osan jälkeen, GitHub vasta pyynnöstä. Kirjattu CLAUDE.md:hen. | 23.9.2026 |
 | 13 | [G] | Joukkue: 3 kenttäpelaajaa + tekoälymaalivahti, jota ei voi ohjata. Hahmon vaihto koskee vain kenttäpelaajia. Enintään 3 pelaajaa per joukkue, 6 koko pelissä. | 23.9.2026 |
 | 14 | [G] | Areena ja säännöt: suljettu areena, joka mahtuu yhdelle ruudulle (ei kameraa). Seinät, joista pallo kimpoaa, pyöristetyt kulmat. Ei rajaheittoja, paitsioita, vapaapotkuja eikä kortteja. Taklaus aina sallittu ja kaataa hahmon hetkeksi. Maalin jälkeen aloitus keskeltä. Ottelu 2–3 min. Esteet ja pomppulevyt harkitaan S4:ssä. | 23.9.2026 |
+| 15 | [G] | Ohjaimet MVP:ssä: näppäimistö (2 pelaajaa, WASD ja nuolet) ja peliohjaimet (selaimen Gamepad API, viimeistään S3). Liike + 3 nappia: syöttö, laukaus, taklaus. Hahmon vaihto automaattisesti ja syöttönapista, kun omalla hahmolla ei ole palloa. Puhelin ohjaimena (QR-koodi) myöhemmin, uutena syötelähteenä. | 23.9.2026 |
 
 ## Arkkitehtuuri
 
@@ -52,4 +53,3 @@ Merkinnät: **[G]** Valtterin päätös · **[E]** Clauden ehdotus, ei vielä ku
 ## Auki [A]
 
 - Grafiikkatyyli ja kuka grafiikan tekee
-- Ohjaimet (näppäimistö, peliohjain, puhelin ohjaimena?)
